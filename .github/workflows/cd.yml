@@ -85,8 +85,6 @@ jobs:
             echo '{"generated_at": "", "release_tag": "", "plugins": []}' > manifest.json
           fi
 
-          echo "baseline_tag=$baseline_tag" >> "$GITHUB_ENV"
-
           # Upsert this release's freshly built plugin manifests by id, leaving
           # any plugin not rebuilt this round untouched from the baseline above.
           # Per-plugin manifests were fetched into plugin-manifests/ by the
@@ -113,11 +111,16 @@ jobs:
         # A plugin whose build was skipped this round (see comment above) keeps its
         # manifest entry from the baseline release, but that baseline entry's
         # checksums point at asset files (binaries, frontend bundle, logo) that only
-        # exist on the *baseline* release, not this one — job-build.yml only uploads
-        # those when it actually rebuilds a plugin. Without this step, this release
-        # would ship a manifest.json referencing assets that 404 on its own page.
-        # Re-download each such plugin's assets from the baseline release and
-        # re-upload them here so every release is self-contained.
+        # exist on whichever release actually built them — job-build.yml only
+        # uploads those when it actually rebuilds a plugin. The baseline release
+        # used for the manifest.json *content* is not necessarily that release: it
+        # may itself be a skip-round release that only carried forward the JSON
+        # entry (e.g. it was published before this asset-carry-forward step
+        # existed, or every release since the real build was itself a skip).
+        # So, per plugin, walk releases newest-to-oldest independently and use the
+        # first one that actually has that plugin's asset files, however far back
+        # that is. Without this step, this release would ship a manifest.json
+        # referencing assets that 404 on its own page.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -125,10 +128,7 @@ jobs:
           TAG="${{ needs.release-version.outputs.tag_name }}"
           REPO="${{ github.repository }}"
 
-          if [[ -z "${baseline_tag:-}" ]]; then
-            echo "No baseline release — nothing to carry forward."
-            exit 0
-          fi
+          releases=$(gh release list --repo "$REPO" --limit 50 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[].tagName')
 
           shopt -s nullglob
           for id in $(jq -r '.plugins[].id' manifest.json); do
@@ -136,7 +136,21 @@ jobs:
               continue # rebuilt this round, its own assets were already uploaded
             fi
 
-            echo "Copying forward release assets for plugin '$id' from $baseline_tag"
+            source_tag=""
+            for t in $releases; do
+              [[ "$t" == "$TAG" ]] && continue
+              if gh release view "$t" --repo "$REPO" --json assets --jq '.assets[].name' | grep -qx "galacius-plugin-${id}-linux-amd64"; then
+                source_tag="$t"
+                break
+              fi
+            done
+
+            if [[ -z "$source_tag" ]]; then
+              echo "::error::No prior release found with asset files for plugin '$id' — cannot carry forward."
+              exit 1
+            fi
+
+            echo "Copying forward release assets for plugin '$id' from $source_tag"
             logo_file=$(jq -r --arg id "$id" '.plugins[] | select(.id == $id) | .assets.logo // empty' manifest.json)
 
             assets=(
@@ -151,7 +165,7 @@ jobs:
 
             mkdir -p "carry-forward/${id}"
             for asset in "${assets[@]}"; do
-              gh release download "$baseline_tag" --repo "$REPO" --pattern "$asset" --dir "carry-forward/${id}" --clobber
+              gh release download "$source_tag" --repo "$REPO" --pattern "$asset" --dir "carry-forward/${id}" --clobber
               gh release upload "$TAG" "carry-forward/${id}/${asset}" --repo "$REPO" --clobber
             done
           done
