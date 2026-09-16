@@ -1,0 +1,3 @@
+- [File Structure](file_structure.md) — repo layout: pnpm workspace + nested Go module, hexagonal-architecture helm plugin backend/frontend dir map (incl. chi router, settings-tab/repository-management surface), backend config/discovery/index cache, frontend query.client singleton
+- [Architecture Call Path](architecture_call_path.md) — business calls are HTTP frontend→backend direct; gRPC is a generic pub/sub control channel (2 topics) auth'd via stdin bearer token; install/upgrade is fire-and-forget HTTP + optimistic cache seed, reconciled later over gRPC events
+- [Development Workflow](development_workflow.md) — build/test/lint commands for helm plugin frontend + backend, local install mirroring, design-system dep blocker
