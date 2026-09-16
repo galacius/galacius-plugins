@@ -85,6 +85,8 @@ jobs:
             echo '{"generated_at": "", "release_tag": "", "plugins": []}' > manifest.json
           fi
 
+          echo "baseline_tag=$baseline_tag" >> "$GITHUB_ENV"
+
           # Upsert this release's freshly built plugin manifests by id, leaving
           # any plugin not rebuilt this round untouched from the baseline above.
           # Per-plugin manifests were fetched into plugin-manifests/ by the
@@ -106,6 +108,53 @@ jobs:
           echo "$manifest" > manifest.json
 
           cat manifest.json
+
+      - name: Carry forward release assets for skipped plugins
+        # A plugin whose build was skipped this round (see comment above) keeps its
+        # manifest entry from the baseline release, but that baseline entry's
+        # checksums point at asset files (binaries, frontend bundle, logo) that only
+        # exist on the *baseline* release, not this one — job-build.yml only uploads
+        # those when it actually rebuilds a plugin. Without this step, this release
+        # would ship a manifest.json referencing assets that 404 on its own page.
+        # Re-download each such plugin's assets from the baseline release and
+        # re-upload them here so every release is self-contained.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.release-version.outputs.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          if [[ -z "${baseline_tag:-}" ]]; then
+            echo "No baseline release — nothing to carry forward."
+            exit 0
+          fi
+
+          shopt -s nullglob
+          for id in $(jq -r '.plugins[].id' manifest.json); do
+            if [[ -f "plugin-manifests/galacius-plugin-${id}-manifest.json" ]]; then
+              continue # rebuilt this round, its own assets were already uploaded
+            fi
+
+            echo "Copying forward release assets for plugin '$id' from $baseline_tag"
+            logo_file=$(jq -r --arg id "$id" '.plugins[] | select(.id == $id) | .assets.logo // empty' manifest.json)
+
+            assets=(
+              "galacius-plugin-${id}-linux-amd64"
+              "galacius-plugin-${id}-darwin-arm64"
+              "galacius-plugin-${id}-windows-amd64.exe"
+              "galacius-plugin-${id}-frontend.tar.gz"
+            )
+            if [[ -n "$logo_file" ]]; then
+              assets+=("galacius-plugin-${id}-logo.${logo_file##*.}")
+            fi
+
+            mkdir -p "carry-forward/${id}"
+            for asset in "${assets[@]}"; do
+              gh release download "$baseline_tag" --repo "$REPO" --pattern "$asset" --dir "carry-forward/${id}" --clobber
+              gh release upload "$TAG" "carry-forward/${id}/${asset}" --repo "$REPO" --clobber
+            done
+          done
 
       - name: Upload registry manifest to release
         env:
