@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { Button, Input, SaveIcon } from "@galacius/design-system";
+import { FC, useCallback, useState, type SubmitEvent } from "react";
 import type { Settings } from "../../api/resources";
 import {
   DEFAULT_THRESHOLDS,
@@ -9,10 +10,12 @@ import {
   type MetricClass,
 } from "../../utils";
 
+type ThresholdMap = Record<string, { warn: number; critical: number }>;
+
 interface ThresholdsSectionProps {
   settings: Settings;
   enabledMetrics: string[];
-  onSettingsChange: (settings: Settings) => void;
+  onSettingsChange: (settings: Settings) => void | Promise<void>;
 }
 
 export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
@@ -20,35 +23,68 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
   enabledMetrics,
   onSettingsChange,
 }) => {
-  const handleThresholdChange = (
-    metricClass: string,
-    field: "warn" | "critical",
-    value: number
-  ) => {
-    const updated = {
-      ...settings,
-      thresholds: {
-        ...settings.thresholds,
+  const [draftThresholds, setDraftThresholds] = useState<ThresholdMap>(
+    () => settings.thresholds ?? {}
+  );
+  const [syncedThresholds, setSyncedThresholds] = useState(settings.thresholds);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  if (settings.thresholds !== syncedThresholds && !isDirty) {
+    setSyncedThresholds(settings.thresholds);
+    setDraftThresholds(settings.thresholds ?? {});
+  }
+
+  const handleThresholdChange = useCallback(
+    (metricClass: string, field: "warn" | "critical", value: number) => {
+      setDraftThresholds((prev) => ({
+        ...prev,
         [metricClass]: {
-          ...(settings.thresholds?.[metricClass] ||
+          ...(prev[metricClass] ||
             DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]),
           [field]: value,
         },
-      },
-    };
-    onSettingsChange(updated);
-  };
+      }));
+      setIsDirty(true);
+    },
+    []
+  );
 
-  const getThresholds = (metricClass: string) => {
-    return (
-      settings.thresholds?.[metricClass] ||
-      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]
-    );
-  };
+  const getThresholds = useCallback(
+    (metricClass: string) => {
+      return (
+        draftThresholds[metricClass] ||
+        DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]
+      );
+    },
+    [draftThresholds]
+  );
+
+  const handleSubmit = useCallback(
+    async (e: SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsSaving(true);
+      try {
+        await onSettingsChange({ ...settings, thresholds: draftThresholds });
+        setIsDirty(false);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [settings, draftThresholds, onSettingsChange]
+  );
 
   return (
-    <div>
-      <h3 className="mb-3 text-sm font-semibold">Thresholds (Color Indicators)</h3>
+    <form onSubmit={handleSubmit}>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-xs font-semibold tracking-wider uppercase">
+          Thresholds (Color Indicators)
+        </h3>
+        <Button type="submit" size="sm" disabled={!isDirty || isSaving}>
+          <SaveIcon className="size-3.5" />
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
       <div className="space-y-4">
         {enabledMetrics.map((metricClass) => {
           const threshold = getThresholds(metricClass);
@@ -106,7 +142,7 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
                   <label className="text-xs text-neutral-600 dark:text-neutral-400">
                     Warning {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     max={scaleMax}
@@ -114,14 +150,14 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
                     onChange={(e) =>
                       handleThresholdChange(metricClass, "warn", Number(e.target.value))
                     }
-                    className="mt-1 w-full rounded border border-neutral-300 bg-white px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
+                    className="mt-1"
                   />
                 </div>
                 <div>
                   <label className="text-xs text-neutral-600 dark:text-neutral-400">
                     Critical {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     max={scaleMax}
@@ -129,7 +165,7 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
                     onChange={(e) =>
                       handleThresholdChange(metricClass, "critical", Number(e.target.value))
                     }
-                    className="mt-1 w-full rounded border border-neutral-300 bg-white px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
+                    className="mt-1"
                   />
                 </div>
               </div>
@@ -137,6 +173,6 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
           );
         })}
       </div>
-    </div>
+    </form>
   );
 };

@@ -105,7 +105,7 @@ export const ResourcesMonitorSettingsTab: FC = () => {
       <div className="max-w-xl flex-1 space-y-6 overflow-y-auto">
         {/* Metrics section */}
         <div>
-          <h3 className="mb-3 text-sm font-semibold">Metrics</h3>
+          <h3 className="mb-3 text-xs font-semibold tracking-wider uppercase">Metrics</h3>
           <MetricOrderList
             metricOrder={knownMetricOrder}
             enabledMetrics={settings.enabledMetrics}
@@ -117,7 +117,7 @@ export const ResourcesMonitorSettingsTab: FC = () => {
 
         {/* Refresh interval section */}
         <div>
-          <h3 className="mb-3 text-sm font-semibold">Refresh Interval</h3>
+          <h3 className="mb-3 text-xs font-semibold tracking-wider uppercase">Refresh Interval</h3>
           <div className="space-y-2">
             <Slider
               min={500}

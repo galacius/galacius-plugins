@@ -1,4 +1,6 @@
 import {
+  Button,
+  SaveIcon,
   Select,
   SelectContent,
   SelectItem,
@@ -6,14 +8,16 @@ import {
   SelectValue,
   Switch,
 } from "@galacius/design-system";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState, type SubmitEvent } from "react";
 import type { DisplayFormat, Settings } from "../../api/resources";
 import { getDefaultFormat, METRIC_CLASS_LABELS, MetricClass } from "../../utils";
+
+type FormatMap = Record<string, DisplayFormat>;
 
 interface DisplaySectionProps {
   settings: Settings;
   enabledMetrics: string[];
-  onSettingsChange: (settings: Settings) => void;
+  onSettingsChange: (settings: Settings) => void | Promise<void>;
 }
 
 export const DisplaySection: FC<DisplaySectionProps> = ({
@@ -35,29 +39,50 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
     [settings, onSettingsChange]
   );
 
+  const [draftFormats, setDraftFormats] = useState<FormatMap>(() => settings.display.formats);
+  const [syncedFormats, setSyncedFormats] = useState(settings.display.formats);
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  if (settings.display.formats !== syncedFormats && !isDirty) {
+    setSyncedFormats(settings.display.formats);
+    setDraftFormats(settings.display.formats);
+  }
+
   const handleFormatChange = useCallback(
     (metricClass: string, field: keyof DisplayFormat, value: string | number | boolean) => {
-      const updated = {
-        ...settings,
-        display: {
-          ...settings.display,
-          formats: {
-            ...settings.display.formats,
-            [metricClass]: {
-              ...settings.display.formats[metricClass],
-              [field]: value,
-            },
-          },
+      setDraftFormats((prev) => ({
+        ...prev,
+        [metricClass]: {
+          ...(prev[metricClass] || getDefaultFormat()),
+          [field]: value,
         },
-      };
-      onSettingsChange(updated);
+      }));
+      setIsDirty(true);
     },
-    [settings, onSettingsChange]
+    []
+  );
+
+  const handleFormatSubmit = useCallback(
+    async (e: SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsSaving(true);
+      try {
+        await onSettingsChange({
+          ...settings,
+          display: { ...settings.display, formats: draftFormats },
+        });
+        setIsDirty(false);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [settings, draftFormats, onSettingsChange]
   );
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold">Display</h3>
+      <h3 className="mb-3 text-xs font-semibold tracking-wider uppercase">Display</h3>
       <div className="space-y-4">
         {/* Global compact/detailed toggle */}
         <div className="rounded border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/50">
@@ -78,13 +103,19 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
         </div>
 
         {/* Per-metric format controls */}
-        <div>
-          <p className="mb-2 text-xs font-medium text-neutral-600 dark:text-neutral-400">
-            Per-Metric Format
-          </p>
+        <form onSubmit={handleFormatSubmit}>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
+              Per-Metric Format
+            </p>
+            <Button type="submit" size="sm" disabled={!isDirty || isSaving}>
+              <SaveIcon className="size-3.5" />
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
           <div className="space-y-2">
             {enabledMetrics.map((metricClass) => {
-              const format = settings.display.formats[metricClass] || getDefaultFormat();
+              const format = draftFormats[metricClass] || getDefaultFormat();
               const label = METRIC_CLASS_LABELS[metricClass as MetricClass];
 
               return (
@@ -142,7 +173,7 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
               );
             })}
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
