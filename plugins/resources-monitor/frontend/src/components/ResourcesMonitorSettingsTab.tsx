@@ -104,9 +104,10 @@ export function ResourcesMonitorSettingsTab() {
     return <div className="p-4">Loading...</div>;
   }
 
-  const enabledMetrics = settings.metricOrder.filter(
-    (m) => settings.enabledMetrics[m] && (capabilities as Capabilities)[m]
-  );
+  const enabledMetrics = settings.metricOrder.filter((m) => {
+    const metricKey = m as keyof Capabilities;
+    return settings.enabledMetrics[m] && capabilities[metricKey];
+  });
 
   return (
     <div className="flex h-full flex-col">

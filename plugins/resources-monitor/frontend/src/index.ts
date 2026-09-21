@@ -1,5 +1,5 @@
-import { appWideAPI } from "@galacius/core";
-import { Activity } from "@galacius/design-system";
+import { appWideAPI, clusterWideAPI } from "@galacius/core";
+import { ActivityIcon } from "@galacius/design-system";
 import { PLUGIN_ID } from "./const";
 import { ResourcesFooterWidget } from "./components/ResourcesFooterWidget";
 import { ResourcesMonitorSettingsTab } from "./components/ResourcesMonitorSettingsTab";
@@ -10,7 +10,7 @@ appWideAPI.registerStylesheets(PLUGIN_ID, [import("./style.css")]);
 appWideAPI.registerSettingsTab(PLUGIN_ID, {
   id: PLUGIN_ID,
   label: "Resources",
-  icon: Activity,
+  icon: ActivityIcon,
   component: ResourcesMonitorSettingsTab,
 });
 
@@ -19,4 +19,4 @@ appWideAPI.registerFooterWidget(PLUGIN_ID, {
   component: ResourcesFooterWidget,
 });
 
-appWideAPI.registerEvents(PLUGIN_ID, eventHandlers);
+clusterWideAPI.registerEvents(PLUGIN_ID, eventHandlers);

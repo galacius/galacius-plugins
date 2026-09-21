@@ -75,7 +75,6 @@ export interface Capabilities {
 }
 
 export interface DisplayFormat {
-  compact: boolean;
   units: string;
   precision: number;
 }

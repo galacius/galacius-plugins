@@ -45,7 +45,6 @@ export function DisplaySection({
   };
 
   const getDefaultFormat = (): DisplayFormat => ({
-    compact: false,
     units: "auto",
     precision: 1,
   });

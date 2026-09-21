@@ -37,6 +37,9 @@ export function useLiveSampleStore() {
 
       return () => {
         listeners.delete(listener);
+        if (listeners.size === 0) {
+          subscriptionStarted = false;
+        }
       };
     },
     () => lastSample,

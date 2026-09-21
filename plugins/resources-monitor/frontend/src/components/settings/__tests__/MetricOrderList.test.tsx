@@ -63,8 +63,13 @@ describe("MetricOrderList", () => {
 
     render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);
 
-    const memoryItems = screen.getAllByText("Memory");
-    expect(memoryItems.length).toBeGreaterThan(0);
+    const memoryCheckbox = screen
+      .getAllByTitle("Memory is not available on this platform")
+      .find((el) => el.tagName === "INPUT");
+    expect(memoryCheckbox).toBeDisabled();
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toBeEnabled(); // cpu, first in defaultProps.metricOrder
   });
 
   it("up button is enabled for all items except the first", () => {

@@ -1,6 +1,15 @@
 packages:
   - "plugins/helm/frontend"
   - "plugins/resources-monitor/frontend"
+# TODO(resources-monitor): remove this override once @galacius/core and
+# @galacius/design-system are tagged/published with the registerFooterWidget,
+# registerEvents (clusterWideAPI), and Activity/Battery/MemoryStick/TrendingUp
+# icon additions — until then the published "1.0.0" on npm predates those
+# APIs and this local link is needed to type-check/build/verify against the
+# real current source in the sibling galacius checkout.
+overrides:
+  "@galacius/core": "link:../galacius/packages/core/frontend"
+  "@galacius/design-system": "link:../galacius/packages/design-system"
 allowBuilds:
   "@parcel/watcher": true
   esbuild: true
