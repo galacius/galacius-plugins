@@ -1,12 +1,14 @@
-import { Switch } from "@galacius/design-system";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+} from "@galacius/design-system";
 import { FC, useCallback } from "react";
 import type { DisplayFormat, Settings } from "../../api/resources";
-import { METRIC_CLASS_LABELS, MetricClass } from "../../utils";
-
-const getDefaultFormat = (): DisplayFormat => ({
-  units: "auto",
-  precision: 1,
-});
+import { getDefaultFormat, METRIC_CLASS_LABELS, MetricClass } from "../../utils";
 
 interface DisplaySectionProps {
   settings: Settings;
@@ -97,15 +99,21 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
                       <label className="text-xs text-neutral-600 dark:text-neutral-400">
                         Units
                       </label>
-                      <select
+                      <Select
                         value={format.units}
-                        onChange={(e) => handleFormatChange(metricClass, "units", e.target.value)}
-                        className="mt-1 w-full rounded border border-neutral-300 bg-white px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
+                        onValueChange={(val) =>
+                          handleFormatChange(metricClass, "units", val ?? "auto")
+                        }
                       >
-                        <option value="auto">Auto</option>
-                        <option value="bytes">Bytes</option>
-                        <option value="percent">Percent</option>
-                      </select>
+                        <SelectTrigger size="sm" className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="auto">Auto</SelectItem>
+                          <SelectItem value="bytes">Bytes</SelectItem>
+                          <SelectItem value="percent">Percent</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Precision */}
@@ -113,17 +121,21 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
                       <label className="text-xs text-neutral-600 dark:text-neutral-400">
                         Precision
                       </label>
-                      <select
-                        value={format.precision}
-                        onChange={(e) =>
-                          handleFormatChange(metricClass, "precision", parseInt(e.target.value))
+                      <Select
+                        value={String(format.precision)}
+                        onValueChange={(val) =>
+                          handleFormatChange(metricClass, "precision", parseInt(val ?? "1"))
                         }
-                        className="mt-1 w-full rounded border border-neutral-300 bg-white px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
                       >
-                        <option value="0">0 decimals</option>
-                        <option value="1">1 decimal</option>
-                        <option value="2">2 decimals</option>
-                      </select>
+                        <SelectTrigger size="sm" className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0 decimals</SelectItem>
+                          <SelectItem value="1">1 decimal</SelectItem>
+                          <SelectItem value="2">2 decimals</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>

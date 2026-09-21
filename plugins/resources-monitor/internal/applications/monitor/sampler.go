@@ -75,6 +75,10 @@ func (s *Sampler) Reconfigure(newIntervalMs int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if newInterval == s.interval {
+		return
+	}
+
 	s.interval = newInterval
 	if s.ticker != nil {
 		s.ticker.Reset(newInterval)

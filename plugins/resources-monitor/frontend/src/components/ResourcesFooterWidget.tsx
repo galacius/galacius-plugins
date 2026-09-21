@@ -1,6 +1,6 @@
 import { CpuIcon, HardDriveIcon, MemoryStickIcon } from "@galacius/design-system";
 import { FC, useCallback, useMemo } from "react";
-import type { Capabilities, ResourcesSample } from "../api/resources";
+import type { Capabilities, DisplayFormat, ResourcesSample } from "../api/resources";
 import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
 import { useGetLiveSample } from "../hooks/data-access/useGetLiveSample";
 import { useGetSettings } from "../hooks/data-access/useGetSettings";
@@ -8,8 +8,11 @@ import {
   DEFAULT_THRESHOLDS,
   formatBytesPerSec,
   formatPercent,
+  getDefaultFormat,
   getEnabledMetrics,
   getThresholdColor,
+  METRIC_CLASS_UNITS,
+  MetricClass,
 } from "../utils";
 import { MetricChip } from "./MetricChip";
 
@@ -40,15 +43,21 @@ function getMetricIcon(metricClass: string): React.ReactNode {
   return METRIC_ICONS[metricClass] || null;
 }
 
-function getMetricValue(metricClass: string, s: ResourcesSample): string | null {
-  if (metricClass === "cpu" && s.cpu) {
-    return `${formatPercent(s.cpu.usagePercent)}%`;
-  } else if (metricClass === "memory" && s.memory) {
-    return `${formatPercent(s.memory.usedPercent)}%`;
-  } else if (metricClass === "diskio" && s.diskIO) {
-    return formatBytesPerSec(s.diskIO.readBytesPerSec + s.diskIO.writeBytesPerSec);
+function getMetricValue(
+  metricClass: string,
+  s: ResourcesSample,
+  format: DisplayFormat
+): string | null {
+  const rawValue = getRawMetricValue(metricClass, s);
+  if (rawValue === null) return null;
+
+  const units =
+    format.units === "auto" ? METRIC_CLASS_UNITS[metricClass as MetricClass] : format.units;
+
+  if (units === "bytes" || units === "bytesPerSec") {
+    return formatBytesPerSec(rawValue, format.precision);
   }
-  return null;
+  return `${formatPercent(rawValue, format.precision)}%`;
 }
 
 export const ResourcesFooterWidget: FC = () => {
@@ -122,7 +131,8 @@ export const ResourcesFooterWidget: FC = () => {
             />
           );
         }
-        const value = getMetricValue(metricClass, sample);
+        const format = settings.display.formats[metricClass] || getDefaultFormat();
+        const value = getMetricValue(metricClass, sample, format);
         const severity = getSeverity(metricClass, sample);
         return (
           <MetricChip

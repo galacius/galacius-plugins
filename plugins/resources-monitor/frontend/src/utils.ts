@@ -1,8 +1,10 @@
+import type { DisplayFormat } from "./api/resources";
+
 export function formatPercent(value: number, decimals = 1): string {
   return value.toFixed(decimals);
 }
 
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number, decimals = 1): string {
   const units = ["B", "KB", "MB", "GB", "TB"];
   let size = bytes;
   let unitIndex = 0;
@@ -12,11 +14,11 @@ export function formatBytes(bytes: number): string {
     unitIndex++;
   }
 
-  return size.toFixed(1) + units[unitIndex];
+  return size.toFixed(decimals) + units[unitIndex];
 }
 
-export function formatBytesPerSec(bytesPerSec: number): string {
-  return `${formatBytes(bytesPerSec)}/s`;
+export function formatBytesPerSec(bytesPerSec: number, decimals = 1): string {
+  return `${formatBytes(bytesPerSec, decimals)}/s`;
 }
 
 export function getThresholdColor(
@@ -33,6 +35,10 @@ export function getThresholdColor(
     if (value >= warnThreshold) return "warning";
   }
   return undefined;
+}
+
+export function getDefaultFormat(): DisplayFormat {
+  return { units: "auto", precision: 1 };
 }
 
 export type MetricClass = "cpu" | "memory" | "diskio";
