@@ -1,4 +1,15 @@
-import { Button, cn, EyeIcon, EyeOffIcon, GripVerticalIcon } from "@galacius/design-system";
+import {
+  Button,
+  cn,
+  EyeIcon,
+  EyeOffIcon,
+  GripVerticalIcon,
+  InfoIcon,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@galacius/design-system";
 import { FC, useCallback, useState } from "react";
 import type { Capabilities } from "../../api/resources";
 import { METRIC_CLASS_LABELS } from "../../utils";
@@ -131,12 +142,20 @@ export const MetricOrderList: FC<MetricOrderListProps> = ({
             </Button>
             <span className="flex-1 text-sm">{label}</span>
             {!isSupported && (
-              <span
-                className="cursor-help text-xs text-neutral-500"
-                title={`${label} is not available on this platform`}
-              >
-                ℹ️
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span className="cursor-help text-neutral-500">
+                        <InfoIcon className="h-4 w-4" />
+                      </span>
+                    }
+                  />
+                  <TooltipContent side="top">
+                    {`${label} is not available on this platform`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         );
