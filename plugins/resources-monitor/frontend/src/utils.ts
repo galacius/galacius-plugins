@@ -40,10 +40,16 @@ export function formatUptime(seconds: number): string {
 export function getThresholdColor(
   value: number,
   warnThreshold: number,
-  criticalThreshold: number
+  criticalThreshold: number,
+  lowerIsWorse: boolean = false
 ): "destructive" | "warning" | undefined {
-  if (value >= criticalThreshold) return "destructive";
-  if (value >= warnThreshold) return "warning";
+  if (lowerIsWorse) {
+    if (value <= criticalThreshold) return "destructive";
+    if (value <= warnThreshold) return "warning";
+  } else {
+    if (value >= criticalThreshold) return "destructive";
+    if (value >= warnThreshold) return "warning";
+  }
   return undefined;
 }
 

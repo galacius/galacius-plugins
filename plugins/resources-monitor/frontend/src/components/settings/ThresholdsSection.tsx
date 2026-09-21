@@ -45,6 +45,7 @@ export function ThresholdsSection({
         {enabledMetrics.map((metricClass) => {
           const threshold = getThresholds(metricClass);
           const label = METRIC_CLASS_LABELS[metricClass as keyof typeof METRIC_CLASS_LABELS];
+          const isBattery = metricClass === "battery";
 
           if (threshold.warn === 0 && threshold.critical === 0) {
             return null;
@@ -61,17 +62,38 @@ export function ThresholdsSection({
               <div className="mb-3 flex h-6 gap-2">
                 <div className="relative flex-1 rounded bg-neutral-200 dark:bg-neutral-800">
                   <div className="absolute top-0 right-0 bottom-0 left-0 flex">
-                    <div className="bg-green-500/30" style={{ width: `${threshold.warn}%` }} />
-                    <div
-                      className="bg-yellow-500/30"
-                      style={{
-                        width: `${threshold.critical - threshold.warn}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-red-500/30"
-                      style={{ width: `${100 - threshold.critical}%` }}
-                    />
+                    {isBattery ? (
+                      <>
+                        <div
+                          className="bg-red-500/30"
+                          style={{ width: `${threshold.critical}%` }}
+                        />
+                        <div
+                          className="bg-yellow-500/30"
+                          style={{
+                            width: `${threshold.warn - threshold.critical}%`,
+                          }}
+                        />
+                        <div
+                          className="bg-green-500/30"
+                          style={{ width: `${100 - threshold.warn}%` }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div className="bg-green-500/30" style={{ width: `${threshold.warn}%` }} />
+                        <div
+                          className="bg-yellow-500/30"
+                          style={{
+                            width: `${threshold.critical - threshold.warn}%`,
+                          }}
+                        />
+                        <div
+                          className="bg-red-500/30"
+                          style={{ width: `${100 - threshold.critical}%` }}
+                        />
+                      </>
+                    )}
                   </div>
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-yellow-600"

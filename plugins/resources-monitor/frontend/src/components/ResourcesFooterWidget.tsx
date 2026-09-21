@@ -111,7 +111,8 @@ export function ResourcesFooterWidget() {
       return undefined;
     }
 
-    return getThresholdColor(rawValue, thresholds.warn, thresholds.critical);
+    const lowerIsWorse = metricClass === "battery";
+    return getThresholdColor(rawValue, thresholds.warn, thresholds.critical, lowerIsWorse);
   }
 
   function getSeverityRank(severity: "destructive" | "warning" | undefined): number {
