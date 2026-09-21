@@ -1,5 +1,7 @@
+import "@testing-library/jest-dom/vitest";
+import type { ComponentProps } from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MetricOrderList } from "../MetricOrderList";
 import type { Capabilities } from "../../../api/resources";
 
@@ -7,8 +9,13 @@ import type { Capabilities } from "../../../api/resources";
 // test; mocking them decouples these tests from whichever @galacius/design-system
 // version happens to be installed (published npm vs. the local link override).
 vi.mock("@galacius/design-system", () => ({
-  ChevronUpIcon: () => null,
-  ChevronDownIcon: () => null,
+  GripVerticalIcon: () => null,
+  EyeIcon: () => null,
+  EyeOffIcon: () => null,
+  Button: (props: ComponentProps<"button"> & { variant?: string; size?: string }) => (
+    <button {...props} />
+  ),
+  cn: (...classes: unknown[]) => classes.filter(Boolean).join(" "),
 }));
 
 describe("MetricOrderList", () => {
@@ -38,52 +45,49 @@ describe("MetricOrderList", () => {
     expect(memory).toBeInTheDocument();
   });
 
-  it("disables up button for first item", () => {
-    render(<MetricOrderList {...defaultProps} />);
-    const moveUpButtons = screen.getAllByTitle("Move up");
-    expect(moveUpButtons[0]).toBeDisabled();
-  });
-
-  it("disables down button for last item", () => {
-    render(<MetricOrderList {...defaultProps} />);
-    const moveDownButtons = screen.getAllByTitle("Move down");
-    expect(moveDownButtons[moveDownButtons.length - 1]).toBeDisabled();
-  });
-
-  it("disables checkbox for unsupported metrics", () => {
+  it("disables toggle button for unsupported metrics", () => {
     const capabilities: Capabilities = {
       cpu: true,
       memory: false,
       diskio: true,
     };
 
-    render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);
+    const { container } = render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);
 
-    const memoryCheckbox = screen
+    const memoryToggle = within(container)
       .getAllByTitle("Memory is not available on this platform")
-      .find((el) => el.tagName === "INPUT");
-    expect(memoryCheckbox).toBeDisabled();
+      .find((el) => el.tagName === "BUTTON");
+    expect(memoryToggle).toBeDisabled();
 
-    const checkboxes = screen.getAllByRole("checkbox");
-    expect(checkboxes[0]).toBeEnabled(); // cpu, first in defaultProps.metricOrder
+    const cpuToggle = within(container).getByRole("button", { name: "Disable CPU" });
+    expect(cpuToggle).toBeEnabled(); // cpu, first in defaultProps.metricOrder
   });
 
-  it("up button is enabled for all items except the first", () => {
-    render(<MetricOrderList {...defaultProps} />);
+  it("reorders metrics when a row is dragged and dropped on another", () => {
+    const onReorder = vi.fn();
+    const { container } = render(<MetricOrderList {...defaultProps} onReorder={onReorder} />);
 
-    const moveUpButtons = screen.getAllByTitle("Move up");
-    expect(moveUpButtons[0]).toBeDisabled(); // First item can't move up
-    expect(moveUpButtons[1]).not.toBeDisabled(); // Second item can move up
-    expect(moveUpButtons[2]).not.toBeDisabled(); // Third item can move up
+    const rows = container.querySelectorAll('[draggable="true"]');
+    const dataTransfer = { setDragImage: vi.fn() } as unknown as DataTransfer;
+
+    fireEvent.dragStart(rows[0], { dataTransfer });
+    fireEvent.dragOver(rows[2], { dataTransfer });
+    fireEvent.drop(rows[2], { dataTransfer });
+
+    expect(onReorder).toHaveBeenCalledWith(["memory", "diskio", "cpu"]);
   });
 
-  it("down button is enabled for all items except the last", () => {
-    render(<MetricOrderList {...defaultProps} />);
+  it("does not reorder when dropping a row onto itself", () => {
+    const onReorder = vi.fn();
+    const { container } = render(<MetricOrderList {...defaultProps} onReorder={onReorder} />);
 
-    const moveDownButtons = screen.getAllByTitle("Move down");
-    const lastIndex = moveDownButtons.length - 1;
-    expect(moveDownButtons[0]).not.toBeDisabled(); // First item can move down
-    expect(moveDownButtons[lastIndex - 1]).not.toBeDisabled(); // Second-to-last can move down
-    expect(moveDownButtons[lastIndex]).toBeDisabled(); // Last item can't move down
+    const rows = container.querySelectorAll('[draggable="true"]');
+    const dataTransfer = { setDragImage: vi.fn() } as unknown as DataTransfer;
+
+    fireEvent.dragStart(rows[0], { dataTransfer });
+    fireEvent.dragOver(rows[0], { dataTransfer });
+    fireEvent.drop(rows[0], { dataTransfer });
+
+    expect(onReorder).not.toHaveBeenCalled();
   });
 });
