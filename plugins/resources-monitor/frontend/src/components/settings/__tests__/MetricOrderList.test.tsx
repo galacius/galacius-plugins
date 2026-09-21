@@ -3,6 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { MetricOrderList } from "../MetricOrderList";
 import type { Capabilities } from "../../../api/resources";
 
+// Icons are presentational and irrelevant to the reorder/toggle logic under
+// test; mocking them decouples these tests from whichever @galacius/design-system
+// version happens to be installed (published npm vs. the local link override).
+vi.mock("@galacius/design-system", () => ({
+  ChevronUpIcon: () => null,
+  ChevronDownIcon: () => null,
+}));
+
 describe("MetricOrderList", () => {
   const mockCapabilities: Capabilities = {
     cpu: true,
