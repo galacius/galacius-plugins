@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestSettingsStoreLoadDefaults(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "test-settings")
+	tmpDir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}
@@ -31,7 +30,7 @@ func TestSettingsStoreLoadDefaults(t *testing.T) {
 }
 
 func TestSettingsStoreSaveAndLoad(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "test-settings")
+	tmpDir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}
@@ -63,14 +62,14 @@ func TestSettingsStoreSaveAndLoad(t *testing.T) {
 }
 
 func TestSettingsStoreCorruptFileRecovery(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "test-settings")
+	tmpDir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	filePath := filepath.Join(tmpDir, "settings.json")
-	if err := ioutil.WriteFile(filePath, []byte("invalid json"), 0600); err != nil {
+	if err := os.WriteFile(filePath, []byte("invalid json"), 0600); err != nil {
 		t.Fatalf("write corrupt file: %v", err)
 	}
 
@@ -86,7 +85,7 @@ func TestSettingsStoreCorruptFileRecovery(t *testing.T) {
 }
 
 func TestSettingsStoreAtomicWrite(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "test-settings")
+	tmpDir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}
@@ -113,7 +112,7 @@ func TestSettingsStoreAtomicWrite(t *testing.T) {
 		t.Errorf("expected file permissions 0600, got %o", fileInfo.Mode())
 	}
 
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("read file: %v", err)
 	}

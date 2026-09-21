@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -46,7 +45,7 @@ func NewFileSettingsStore() (port.SettingsStore, error) {
 }
 
 func (s *FileSettingsStore) Load(ctx context.Context) (dto.Settings, error) {
-	data, err := ioutil.ReadFile(s.filePath)
+	data, err := os.ReadFile(s.filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return dto.DefaultSettings(), nil
@@ -75,7 +74,7 @@ func (s *FileSettingsStore) Save(ctx context.Context, settings dto.Settings) err
 	}
 
 	dir := filepath.Dir(s.filePath)
-	tmpFile, err := ioutil.TempFile(dir, "settings-*.json")
+	tmpFile, err := os.CreateTemp(dir, "settings-*.json")
 	if err != nil {
 		return fmt.Errorf("create temp file: %w", err)
 	}

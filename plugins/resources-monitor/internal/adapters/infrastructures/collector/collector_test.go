@@ -51,7 +51,7 @@ func TestCollectorCollectCPU(t *testing.T) {
 	}
 
 	if metric == nil {
-		t.Errorf("expected CPU metric, got nil")
+		t.Fatalf("expected CPU metric, got nil")
 	}
 
 	if metric.UsagePercent < 0 || metric.UsagePercent > 100 {
@@ -69,7 +69,7 @@ func TestCollectorCollectMemory(t *testing.T) {
 	}
 
 	if metric == nil {
-		t.Errorf("expected memory metric, got nil")
+		t.Fatalf("expected memory metric, got nil")
 	}
 
 	if metric.TotalBytes == 0 {
@@ -87,7 +87,7 @@ func TestCollectorCollectUptime(t *testing.T) {
 	}
 
 	if metric == nil {
-		t.Errorf("expected uptime metric, got nil")
+		t.Fatalf("expected uptime metric, got nil")
 	}
 
 	if metric.UptimeSeconds == 0 {
