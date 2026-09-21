@@ -1,21 +1,19 @@
 import { useState } from "react";
-import type { ResourcesSample, Settings } from "../api/resources";
+import type { ResourcesSample } from "../api/resources";
 import { METRIC_CLASS_LABELS } from "../utils";
 import { MetricChip } from "./MetricChip";
 
 interface FooterOverflowIndicatorProps {
   overflowMetrics: string[];
   sample: ResourcesSample | null;
-  settings: Settings | null;
   getMetricIcon: (metricClass: string) => React.ReactNode;
   getMetricValue: (metricClass: string, sample: ResourcesSample) => string | null;
-  getSeverity: (value: string | null) => "warning" | "destructive" | undefined;
+  getSeverity: (metricClass: string, value: string | null) => "warning" | "destructive" | undefined;
 }
 
 export function FooterOverflowIndicator({
   overflowMetrics,
   sample,
-  settings,
   getMetricIcon,
   getMetricValue,
   getSeverity,
@@ -41,8 +39,8 @@ export function FooterOverflowIndicator({
               const value =
                 sample && getMetricValue(metricClass, sample)
                   ? getMetricValue(metricClass, sample)
-                  : "—";
-              const severity = getSeverity(value);
+                  : null;
+              const severity = getSeverity(metricClass, value);
               return (
                 <div key={metricClass} className="flex items-center gap-2">
                   <MetricChip

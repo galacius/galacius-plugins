@@ -53,7 +53,7 @@ describe("MetricOrderList", () => {
   it("disables checkbox for unsupported metrics", () => {
     const capabilities: Capabilities = {
       cpu: true,
-      memory: false, // Unsupported
+      memory: false,
       disk: true,
       network: true,
       battery: true,
@@ -63,8 +63,26 @@ describe("MetricOrderList", () => {
 
     render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);
 
-    // Verify the component renders with unsupported metric
     const memoryItems = screen.getAllByText("Memory");
     expect(memoryItems.length).toBeGreaterThan(0);
+  });
+
+  it("up button is enabled for all items except the first", () => {
+    render(<MetricOrderList {...defaultProps} />);
+
+    const moveUpButtons = screen.getAllByTitle("Move up");
+    expect(moveUpButtons[0]).toBeDisabled(); // First item can't move up
+    expect(moveUpButtons[1]).not.toBeDisabled(); // Second item can move up
+    expect(moveUpButtons[2]).not.toBeDisabled(); // Third item can move up
+  });
+
+  it("down button is enabled for all items except the last", () => {
+    render(<MetricOrderList {...defaultProps} />);
+
+    const moveDownButtons = screen.getAllByTitle("Move down");
+    const lastIndex = moveDownButtons.length - 1;
+    expect(moveDownButtons[0]).not.toBeDisabled(); // First item can move down
+    expect(moveDownButtons[lastIndex - 1]).not.toBeDisabled(); // Second-to-last can move down
+    expect(moveDownButtons[lastIndex]).toBeDisabled(); // Last item can't move down
   });
 });

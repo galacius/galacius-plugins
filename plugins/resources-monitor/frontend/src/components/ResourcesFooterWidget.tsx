@@ -14,7 +14,6 @@ import type { ResourcesSample, Settings, Capabilities } from "../api/resources";
 import {
   formatPercent,
   formatBytes,
-  formatBatteryTime,
   formatLoadAverage,
   formatUptime,
   getThresholdColor,
@@ -47,7 +46,6 @@ export function ResourcesFooterWidget() {
   const sample = useLiveSampleStore();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([GetSettings(), GetCapabilities()])
@@ -57,9 +55,6 @@ export function ResourcesFooterWidget() {
       })
       .catch((err) => {
         console.error("Failed to load settings or capabilities:", err);
-      })
-      .finally(() => {
-        setIsLoading(false);
       });
   }, []);
 
@@ -88,9 +83,24 @@ export function ResourcesFooterWidget() {
     return null;
   }
 
-  function getSeverity(value: string | null) {
-    // Simplified severity logic; extended logic would check thresholds
-    return undefined;
+  function getSeverity(
+    metricClass: string,
+    value: string | null
+  ): "destructive" | "warning" | undefined {
+    if (!value || value === "—") return undefined;
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return undefined;
+    return getThresholdColor(
+      numValue,
+      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.warn || 0,
+      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.critical || 0
+    );
+  }
+
+  function getSeverityRank(severity: "destructive" | "warning" | undefined): number {
+    if (severity === "destructive") return 2;
+    if (severity === "warning") return 1;
+    return 0;
   }
 
   if (!settings || !capabilities) {
@@ -110,31 +120,58 @@ export function ResourcesFooterWidget() {
     );
   }
 
-  if (!sample) {
+  if (!sample || sample.degraded) {
     return <div className="px-2 py-1 text-xs text-neutral-500">Unavailable</div>;
   }
 
   // Determine which metrics to show based on settings and capabilities
-  const enabledMetrics = settings.metricOrder.filter(
-    (m) => settings.enabledMetrics[m] && (capabilities as any)[m as keyof Capabilities]
-  );
+  const enabledMetrics = settings.metricOrder.filter((m) => {
+    const metricKey = m as keyof Capabilities;
+    return settings.enabledMetrics[m] && capabilities[metricKey];
+  });
 
-  // Calculate visibility based on container width (simplified heuristic)
+  // Partition metrics by severity: critical > warning > normal, with metricOrder as tie-breaker
   const maxVisibleMetrics = 5;
-  const visibleMetrics = enabledMetrics.slice(0, maxVisibleMetrics);
-  const overflowMetrics = enabledMetrics.slice(maxVisibleMetrics);
+  const { visibleMetrics, overflowMetrics } = (() => {
+    if (enabledMetrics.length <= maxVisibleMetrics) {
+      return { visibleMetrics: enabledMetrics, overflowMetrics: [] };
+    }
+
+    const metricsWithSeverity = enabledMetrics.map((m) => {
+      const value = getMetricValue(m, sample);
+      const severity = getSeverity(m, value);
+      return { metric: m, value, severity, severityRank: getSeverityRank(severity) };
+    });
+
+    // Separate high-severity from normal
+    const highSeverity = metricsWithSeverity.filter((m) => m.severityRank > 0);
+    const normalSeverity = metricsWithSeverity.filter((m) => m.severityRank === 0);
+
+    // Sort each group by metricOrder to preserve user's display preference
+    const sortByOrder = (a: { metric: string }, b: { metric: string }) => {
+      const aIdx = settings.metricOrder.indexOf(a.metric);
+      const bIdx = settings.metricOrder.indexOf(b.metric);
+      return aIdx - bIdx;
+    };
+    highSeverity.sort(sortByOrder);
+    normalSeverity.sort(sortByOrder);
+
+    // Take high-severity first, then fill remaining slots with normal
+    const visibleData = [
+      ...highSeverity.slice(0, maxVisibleMetrics),
+      ...normalSeverity.slice(0, Math.max(0, maxVisibleMetrics - highSeverity.length)),
+    ];
+    const visibleMetricsList = visibleData.map((m) => m.metric);
+    const overflowMetricsList = enabledMetrics.filter((m) => !visibleMetricsList.includes(m));
+
+    return { visibleMetrics: visibleMetricsList, overflowMetrics: overflowMetricsList };
+  })();
 
   return (
     <div className="flex items-center gap-1">
       {visibleMetrics.map((metricClass) => {
         const value = getMetricValue(metricClass, sample);
-        const severity = value
-          ? getThresholdColor(
-              parseFloat(value),
-              DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.warn || 0,
-              DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.critical || 0
-            )
-          : undefined;
+        const severity = getSeverity(metricClass, value);
 
         return (
           <MetricChip
@@ -152,7 +189,6 @@ export function ResourcesFooterWidget() {
         <FooterOverflowIndicator
           overflowMetrics={overflowMetrics}
           sample={sample}
-          settings={settings}
           getMetricIcon={getMetricIcon}
           getMetricValue={getMetricValue}
           getSeverity={getSeverity}
