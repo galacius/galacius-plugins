@@ -8,12 +8,15 @@ Official plugin repository for Galacius (a Kubernetes desktop app built with Wai
 a self-contained subdirectory pairing a Go gRPC subprocess (backend) with a dynamically-loaded
 TypeScript/React ES module (frontend). Currently the repo holds two plugins: `plugins/helm/` and `plugins/resources-monitor/`.
 
-This is a pnpm workspace (`pnpm-workspace.yaml` includes `plugins/helm/frontend`) at the JS layer, and a
-single Go module (`github.com/galacius/galacius-plugins`) at the Go layer — `plugins/helm/` has its own
-nested `go.mod` (`.../galacius-plugins/plugins/helm`) since it depends on heavy packages (`helm.sh/helm/v3`,
-`k8s.io/client-go`) that shouldn't pollute the root module. `staticcheck` is declared as a `tool`
-directive in that `go.mod` (Go 1.26+ tool dependency) and invoked via `go tool staticcheck ./...`,
-not installed separately.
+This is a pnpm workspace (`pnpm-workspace.yaml` includes `plugins/helm/frontend` and
+`plugins/resources-monitor/frontend`) at the JS layer, and a single Go module
+(`github.com/galacius/galacius-plugins`) at the Go layer — `plugins/helm/` and
+`plugins/resources-monitor/` each have their own nested `go.mod`
+(`.../galacius-plugins/plugins/helm`, `.../galacius-plugins/plugins/resources-monitor`) since helm
+depends on heavy packages (`helm.sh/helm/v3`, `k8s.io/client-go`) that shouldn't pollute the root
+module, and resources-monitor follows the same per-plugin-module convention. `staticcheck` is
+declared as a `tool` directive in each plugin's `go.mod` (Go 1.26+ tool dependency) and invoked via
+`go tool staticcheck ./...`, not installed separately.
 
 ## Commands
 
