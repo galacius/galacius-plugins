@@ -1,35 +1,31 @@
-import { useEffect, useState } from "react";
 import { ConfirmationModal } from "@galacius/design-system";
-import { GetSettings, GetCapabilities, SaveSettings, ResetSettings } from "../api/bridge";
-import type { Settings, Capabilities } from "../api/resources";
-import { ResourcesFooterWidget } from "./ResourcesFooterWidget";
+import { FC, useEffect, useRef, useState } from "react";
+import type { Settings } from "../api/resources";
+import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
+import { useGetSettings } from "../hooks/data-access/useGetSettings";
+import { useResetSettings } from "../hooks/data-mutation/useResetSettings";
+import { useSaveSettings } from "../hooks/data-mutation/useSaveSettings";
+import { getSupportedEnabledMetrics, isKnownMetricClass } from "../utils";
+import { DisplaySection } from "./settings/DisplaySection";
 import { MetricOrderList } from "./settings/MetricOrderList";
 import { ThresholdsSection } from "./settings/ThresholdsSection";
-import { DisplaySection } from "./settings/DisplaySection";
-import { getSupportedEnabledMetrics, isKnownMetricClass } from "../utils";
 
-export function ResourcesMonitorSettingsTab() {
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
+export const ResourcesMonitorSettingsTab: FC = () => {
+  const { data: settings } = useGetSettings();
+  const { data: capabilities } = useGetCapabilities();
+  const saveSettings = useSaveSettings();
+  const resetSettings = useResetSettings();
+
   const [intervalMs, setIntervalMs] = useState(2000);
-  const [loading, setLoading] = useState(true);
   const [resetModalOpen, setResetModalOpen] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
+  const intervalInitialized = useRef(false);
 
   useEffect(() => {
-    Promise.all([GetSettings(), GetCapabilities()])
-      .then(([s, c]) => {
-        setSettings(s);
-        setCapabilities(c);
-        setIntervalMs(s.intervalMs);
-      })
-      .catch((err) => {
-        console.error("Failed to load settings:", err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+    if (settings && !intervalInitialized.current) {
+      intervalInitialized.current = true;
+      setIntervalMs(settings.intervalMs);
+    }
+  }, [settings]);
 
   const handleIntervalChange = (newInterval: number) => {
     setIntervalMs(newInterval);
@@ -38,9 +34,8 @@ export function ResourcesMonitorSettingsTab() {
   const handleIntervalRelease = async () => {
     if (!settings) return;
     const updated = { ...settings, intervalMs };
-    setSettings(updated);
     try {
-      await SaveSettings(updated);
+      await saveSettings.mutateAsync(updated);
     } catch (err) {
       console.error("Failed to save interval:", err);
     }
@@ -55,9 +50,8 @@ export function ResourcesMonitorSettingsTab() {
         [metricClass]: enabled,
       },
     };
-    setSettings(updated);
     try {
-      await SaveSettings(updated);
+      await saveSettings.mutateAsync(updated);
     } catch (err) {
       console.error("Failed to toggle metric:", err);
     }
@@ -69,39 +63,32 @@ export function ResourcesMonitorSettingsTab() {
       ...settings,
       metricOrder: newOrder,
     };
-    setSettings(updated);
     try {
-      await SaveSettings(updated);
+      await saveSettings.mutateAsync(updated);
     } catch (err) {
       console.error("Failed to reorder metrics:", err);
     }
   };
 
   const handleSettingsChange = async (updated: Settings) => {
-    setSettings(updated);
     try {
-      await SaveSettings(updated);
+      await saveSettings.mutateAsync(updated);
     } catch (err) {
       console.error("Failed to save settings:", err);
     }
   };
 
   const handleResetConfirm = async () => {
-    setIsResetting(true);
     try {
-      await ResetSettings();
-      const updated = await GetSettings();
-      setSettings(updated);
+      const updated = await resetSettings.mutateAsync();
       setIntervalMs(updated.intervalMs);
       setResetModalOpen(false);
     } catch (err) {
       console.error("Failed to reset settings:", err);
-    } finally {
-      setIsResetting(false);
     }
   };
 
-  if (loading || !settings || !capabilities) {
+  if (!settings || !capabilities) {
     return <div className="p-4">Loading...</div>;
   }
 
@@ -114,13 +101,8 @@ export function ResourcesMonitorSettingsTab() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Live preview bar */}
-      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
-        <ResourcesFooterWidget />
-      </div>
-
       {/* Scrollable settings sections */}
-      <div className="flex-1 space-y-6 overflow-y-auto p-4">
+      <div className="flex-1 space-y-6 overflow-y-auto">
         {/* Metrics section */}
         <div>
           <h3 className="mb-3 text-sm font-semibold">Metrics</h3>
@@ -194,10 +176,10 @@ export function ResourcesMonitorSettingsTab() {
         description="This will reset all settings to their default values. This action cannot be undone."
         confirmLabel="Reset"
         confirmVariant="destructive"
-        isPending={isResetting}
+        isPending={resetSettings.isPending}
         onClose={() => setResetModalOpen(false)}
         onConfirm={handleResetConfirm}
       />
     </div>
   );
-}
+};

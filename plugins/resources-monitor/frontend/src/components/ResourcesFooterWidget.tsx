@@ -1,14 +1,15 @@
 import { CpuIcon, HardDriveIcon, MemoryStickIcon } from "@galacius/design-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLiveSampleStore } from "../stores/liveSampleStore";
-import { GetSettings, GetCapabilities } from "../api/bridge";
-import type { ResourcesSample, Settings, Capabilities } from "../api/resources";
+import { FC, useCallback, useMemo } from "react";
+import type { Capabilities, ResourcesSample } from "../api/resources";
+import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
+import { useGetLiveSample } from "../hooks/data-access/useGetLiveSample";
+import { useGetSettings } from "../hooks/data-access/useGetSettings";
 import {
-  formatPercent,
-  formatBytesPerSec,
-  getThresholdColor,
-  getEnabledMetrics,
   DEFAULT_THRESHOLDS,
+  formatBytesPerSec,
+  formatPercent,
+  getEnabledMetrics,
+  getThresholdColor,
 } from "../utils";
 import { MetricChip } from "./MetricChip";
 
@@ -50,22 +51,10 @@ function getMetricValue(metricClass: string, s: ResourcesSample): string | null 
   return null;
 }
 
-export function ResourcesFooterWidget() {
-  const sample = useLiveSampleStore();
-
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
-
-  useEffect(() => {
-    Promise.all([GetSettings(), GetCapabilities()])
-      .then(([s, c]) => {
-        setSettings(s);
-        setCapabilities(c);
-      })
-      .catch((err) => {
-        console.error("Failed to load settings or capabilities:", err);
-      });
-  }, []);
+export const ResourcesFooterWidget: FC = () => {
+  const { data: sample } = useGetLiveSample();
+  const { data: settings } = useGetSettings();
+  const { data: capabilities } = useGetCapabilities();
 
   const getSeverity = useCallback(
     (metricClass: string, s: ResourcesSample): "destructive" | "warning" | undefined => {
@@ -145,4 +134,4 @@ export function ResourcesFooterWidget() {
       })}
     </div>
   );
-}
+};

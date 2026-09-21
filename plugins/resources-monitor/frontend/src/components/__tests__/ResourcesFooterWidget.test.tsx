@@ -2,13 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { ResourcesFooterWidget } from "../ResourcesFooterWidget";
 import { getThresholdColor } from "../../utils";
-import { GetSettings, GetCapabilities } from "../../api/bridge";
-import { useLiveSampleStore } from "../../stores/liveSampleStore";
+import { useGetCapabilities } from "../../hooks/data-access/useGetCapabilities";
+import { useGetLiveSample } from "../../hooks/data-access/useGetLiveSample";
+import { useGetSettings } from "../../hooks/data-access/useGetSettings";
 import type { ResourcesSample, Settings, Capabilities } from "../../api/resources";
 
-vi.mock("../../api/bridge", () => ({
-  GetSettings: vi.fn(),
-  GetCapabilities: vi.fn(),
+vi.mock("../../hooks/data-access/useGetCapabilities", () => ({
+  useGetCapabilities: vi.fn(),
+}));
+
+vi.mock("../../hooks/data-access/useGetSettings", () => ({
+  useGetSettings: vi.fn(),
+}));
+
+vi.mock("../../hooks/data-access/useGetLiveSample", () => ({
+  useGetLiveSample: vi.fn(),
 }));
 
 // Icons are presentational and irrelevant to the severity/overflow logic under
@@ -20,9 +28,17 @@ vi.mock("@galacius/design-system", () => ({
   HardDriveIcon: () => null,
 }));
 
-vi.mock("../../stores/liveSampleStore", () => ({
-  useLiveSampleStore: vi.fn(),
-}));
+function mockCapabilities(data: Capabilities | undefined) {
+  vi.mocked(useGetCapabilities).mockReturnValue({ data } as ReturnType<typeof useGetCapabilities>);
+}
+
+function mockSettings(data: Settings | undefined) {
+  vi.mocked(useGetSettings).mockReturnValue({ data } as ReturnType<typeof useGetSettings>);
+}
+
+function mockSample(data: ResourcesSample | undefined) {
+  vi.mocked(useGetLiveSample).mockReturnValue({ data } as ReturnType<typeof useGetLiveSample>);
+}
 
 const baseSettings: Settings = {
   schemaVersion: 1,
@@ -79,9 +95,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("renders skeleton chips while settings/capabilities are loading", async () => {
-    vi.mocked(GetSettings).mockReturnValue(new Promise(() => {}));
-    vi.mocked(GetCapabilities).mockReturnValue(new Promise(() => {}));
-    vi.mocked(useLiveSampleStore).mockReturnValue(null);
+    mockSettings(undefined);
+    mockCapabilities(undefined);
+    mockSample(undefined);
 
     render(<ResourcesFooterWidget />);
 
@@ -90,9 +106,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("renders 'Unavailable' when the sample is degraded", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue({ ...baseSample, degraded: true });
+    mockSettings(baseSettings);
+    mockCapabilities(baseCapabilities);
+    mockSample({ ...baseSample, degraded: true });
 
     render(<ResourcesFooterWidget />);
 
@@ -100,9 +116,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("renders 'Unavailable' when there is no sample yet", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue(null);
+    mockSettings(baseSettings);
+    mockCapabilities(baseCapabilities);
+    mockSample(undefined);
 
     render(<ResourcesFooterWidget />);
 
@@ -110,9 +126,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("marks a critically-high memory chip as destructive severity, not healthy", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue({
+    mockSettings(baseSettings);
+    mockCapabilities(baseCapabilities);
+    mockSample({
       ...baseSample,
       memory: { usedPercent: 97, usedBytes: 0, totalBytes: 0, processes: [] },
     });
@@ -124,9 +140,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("marks a critically-high disk I/O chip as destructive severity", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue({
+    mockSettings(baseSettings);
+    mockCapabilities(baseCapabilities);
+    mockSample({
       ...baseSample,
       diskIO: {
         readBytesPerSec: 100 * 1024 * 1024,
@@ -142,9 +158,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("shows N/A for an enabled metric the platform doesn't support", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue({ ...baseCapabilities, diskio: false });
-    vi.mocked(useLiveSampleStore).mockReturnValue(baseSample);
+    mockSettings(baseSettings);
+    mockCapabilities({ ...baseCapabilities, diskio: false });
+    mockSample(baseSample);
 
     render(<ResourcesFooterWidget />);
 
@@ -155,13 +171,13 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("ignores stale metric classes persisted from a removed metric", async () => {
-    vi.mocked(GetSettings).mockResolvedValue({
+    mockSettings({
       ...baseSettings,
       enabledMetrics: { ...baseSettings.enabledMetrics, battery: true, network: true },
       metricOrder: ["cpu", "memory", "diskio", "battery", "network"],
     });
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue(baseSample);
+    mockCapabilities(baseCapabilities);
+    mockSample(baseSample);
 
     render(<ResourcesFooterWidget />);
 
@@ -171,9 +187,9 @@ describe("ResourcesFooterWidget", () => {
   });
 
   it("does not mark a healthy CPU chip as destructive", async () => {
-    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
-    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
-    vi.mocked(useLiveSampleStore).mockReturnValue(baseSample);
+    mockSettings(baseSettings);
+    mockCapabilities(baseCapabilities);
+    mockSample(baseSample);
 
     render(<ResourcesFooterWidget />);
 

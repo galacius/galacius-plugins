@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { FC, ReactNode } from "react";
 import type { ResourcesSample } from "../api/resources";
 import { formatBytes, formatBytesPerSec, formatPercent } from "../utils";
 
@@ -7,7 +7,7 @@ interface MetricDetailPanelProps {
   sample: ResourcesSample | null;
 }
 
-export function MetricDetailPanel({ metricClass, sample }: MetricDetailPanelProps) {
+export const MetricDetailPanel: FC<MetricDetailPanelProps> = ({ metricClass, sample }) => {
   if (!sample) {
     return <div className="p-2 text-xs text-neutral-500">No data</div>;
   }
@@ -102,4 +102,4 @@ export function MetricDetailPanel({ metricClass, sample }: MetricDetailPanelProp
   }
 
   return <div className="min-w-48 rounded-md bg-white p-3 dark:bg-neutral-950">{content}</div>;
-}
+};

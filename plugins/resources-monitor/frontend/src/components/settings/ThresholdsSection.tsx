@@ -1,12 +1,13 @@
+import { FC } from "react";
+import type { Settings } from "../../api/resources";
 import {
-  METRIC_CLASS_LABELS,
   DEFAULT_THRESHOLDS,
-  METRIC_CLASS_UNITS,
+  METRIC_CLASS_LABELS,
   METRIC_CLASS_SCALE_MAX,
+  METRIC_CLASS_UNITS,
   formatBytesPerSec,
   type MetricClass,
 } from "../../utils";
-import type { Settings } from "../../api/resources";
 
 interface ThresholdsSectionProps {
   settings: Settings;
@@ -14,11 +15,11 @@ interface ThresholdsSectionProps {
   onSettingsChange: (settings: Settings) => void;
 }
 
-export function ThresholdsSection({
+export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
   settings,
   enabledMetrics,
   onSettingsChange,
-}: ThresholdsSectionProps) {
+}) => {
   const handleThresholdChange = (
     metricClass: string,
     field: "warn" | "critical",
@@ -138,4 +139,4 @@ export function ThresholdsSection({
       </div>
     </div>
   );
-}
+};

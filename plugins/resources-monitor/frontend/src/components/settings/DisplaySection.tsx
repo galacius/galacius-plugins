@@ -1,5 +1,6 @@
+import { FC } from "react";
+import type { DisplayFormat, Settings } from "../../api/resources";
 import { METRIC_CLASS_LABELS, MetricClass } from "../../utils";
-import type { Settings, DisplayFormat } from "../../api/resources";
 
 interface DisplaySectionProps {
   settings: Settings;
@@ -7,11 +8,11 @@ interface DisplaySectionProps {
   onSettingsChange: (settings: Settings) => void;
 }
 
-export function DisplaySection({
+export const DisplaySection: FC<DisplaySectionProps> = ({
   settings,
   enabledMetrics,
   onSettingsChange,
-}: DisplaySectionProps) {
+}) => {
   const handleCompactToggle = (checked: boolean) => {
     const updated = {
       ...settings,
@@ -128,4 +129,4 @@ export function DisplaySection({
       </div>
     </div>
   );
-}
+};

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { FC, ReactNode } from "react";
 
 interface MetricChipProps {
   icon: ReactNode;
@@ -11,7 +11,7 @@ interface MetricChipProps {
   width?: string;
 }
 
-export function MetricChip({
+export const MetricChip: FC<MetricChipProps> = ({
   icon,
   label,
   value,
@@ -20,7 +20,7 @@ export function MetricChip({
   disabled,
   title,
   width,
-}: MetricChipProps) {
+}) => {
   const baseClass = "flex items-center gap-1 px-2 py-1 rounded text-xs transition-opacity";
   const severityClass = disabled
     ? "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600"
@@ -50,4 +50,4 @@ export function MetricChip({
       <span className="min-w-8 text-right font-mono text-xs">{value}</span>
     </div>
   );
-}
+};
