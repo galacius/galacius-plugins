@@ -83,7 +83,7 @@ export const MetricOrderList: FC<MetricOrderListProps> = ({
   }, []);
 
   return (
-    <div className="w-1/2 space-y-2">
+    <div className="space-y-2">
       {metricOrder.map((metricClass, index) => {
         const isSupported = (capabilities as Capabilities)[metricClass as keyof Capabilities];
         const isEnabled = enabledMetrics[metricClass];

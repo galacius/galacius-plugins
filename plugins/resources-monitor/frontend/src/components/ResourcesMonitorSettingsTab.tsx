@@ -1,4 +1,4 @@
-import { ConfirmationModal } from "@galacius/design-system";
+import { ConfirmationModal, Slider } from "@galacius/design-system";
 import { FC, useEffect, useRef, useState } from "react";
 import type { Settings } from "../api/resources";
 import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
@@ -102,7 +102,7 @@ export const ResourcesMonitorSettingsTab: FC = () => {
   return (
     <div className="flex h-full flex-col">
       {/* Scrollable settings sections */}
-      <div className="flex-1 space-y-6 overflow-y-auto">
+      <div className="max-w-xl flex-1 space-y-6 overflow-y-auto">
         {/* Metrics section */}
         <div>
           <h3 className="mb-3 text-sm font-semibold">Metrics</h3>
@@ -119,17 +119,13 @@ export const ResourcesMonitorSettingsTab: FC = () => {
         <div>
           <h3 className="mb-3 text-sm font-semibold">Refresh Interval</h3>
           <div className="space-y-2">
-            <input
-              type="range"
-              min="500"
-              max="60000"
-              step="500"
+            <Slider
+              min={500}
+              max={60000}
+              step={500}
               value={intervalMs}
-              onChange={(e) => handleIntervalChange(Number(e.target.value))}
-              onPointerUp={handleIntervalRelease}
-              onMouseUp={handleIntervalRelease}
-              onTouchEnd={handleIntervalRelease}
-              className="w-full"
+              onValueChange={(value) => handleIntervalChange(value as number)}
+              onValueCommitted={handleIntervalRelease}
             />
             <div className="flex justify-between text-xs text-neutral-500">
               <span>500ms</span>
