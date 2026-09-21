@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Official plugin repository for Galacius (a Kubernetes desktop app built with Wails). Each plugin is
 a self-contained subdirectory pairing a Go gRPC subprocess (backend) with a dynamically-loaded
-TypeScript/React ES module (frontend). Currently the repo holds one plugin: `plugins/helm/`.
+TypeScript/React ES module (frontend). Currently the repo holds two plugins: `plugins/helm/` and `plugins/resources-monitor/`.
 
 This is a pnpm workspace (`pnpm-workspace.yaml` includes `plugins/helm/frontend`) at the JS layer, and a
 single Go module (`github.com/galacius/galacius-plugins`) at the Go layer — `plugins/helm/` has its own

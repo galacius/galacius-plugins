@@ -20,6 +20,12 @@ Frontend (helm plugin, `plugins/helm/frontend`):
 - `pnpm lint:fe` — eslint `plugins/helm/frontend/src`.
 - Single test file: `cd plugins/helm/frontend && pnpm vitest run src/components/release/__tests__/HelmReleaseStatusBadge.test.tsx`.
 
+Frontend (resources-monitor plugin, `plugins/resources-monitor/frontend`):
+- `pnpm build:resources-monitor:fe` — build the bundle.
+- `pnpm test:resources-monitor:fe` — vitest run.
+- `pnpm test:resources-monitor:fe:coverage` — vitest --coverage.
+- `pnpm lint:fe` — eslint `plugins/helm/frontend/src plugins/resources-monitor/frontend/src` (shared, already covers both plugins).
+
 Backend (helm plugin, `plugins/helm`):
 - `pnpm test:helm:be` — `go test -race -v ./...` inside `plugins/helm/`.
 - `pnpm test:helm:be:coverage` — adds `-cover -coverprofile=coverage.out`.
@@ -29,11 +35,18 @@ Backend (helm plugin, `plugins/helm`):
 - Build the plugin binary: `cd plugins/helm && GOOS=linux GOARCH=amd64 VERSION=1.2.3 ./scripts/build.sh`
   (same script used by local dev and CI).
 
+Backend (resources-monitor plugin, `plugins/resources-monitor`):
+- `pnpm test:resources-monitor:be` — `go test -race -v ./...` inside `plugins/resources-monitor/`.
+- `pnpm test:resources-monitor:be:coverage` — adds `-cover -coverprofile=coverage.out`.
+- `pnpm lint:be` — `go vet` + `staticcheck` for both plugins (`plugins/helm` and `plugins/resources-monitor`).
+
 Local install mirroring:
 - `cd plugins/helm && node scripts/deploy-plugin-helm-local.mjs` (run `build:helm:fe` first) — mirrors
   a full plugin install (frontend dist + binary + tar.gz + metadata) under `<repo-root>/.output/helm/`;
   never touches the real `~/.galacius/plugins/helm`; intentionally produces no `helm.lock` (that's
   host-runtime-only state). See [[file-structure]] for what these paths map to.
+- `cd plugins/resources-monitor && node scripts/deploy-plugin-resources-monitor-local.mjs` — same
+  mirroring, for the resources-monitor plugin.
 
 `@galacius/core` and `@galacius/design-system` (npm) and `github.com/galacius/galacius/packages/core`
 (Go) are consumed as ordinary published/tagged dependencies from the `galacius` host repo — no local
