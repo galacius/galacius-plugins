@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { ConfirmationModal } from "@galacius/design-system";
 import { GetSettings, GetCapabilities, SaveSettings, ResetSettings } from "../api/bridge";
 import type { Settings, Capabilities } from "../api/resources";
 import { METRIC_CLASS_LABELS, DEFAULT_THRESHOLDS } from "../utils";
 import { ResourcesFooterWidget } from "./ResourcesFooterWidget";
 import { MetricOrderList } from "./settings/MetricOrderList";
 import { ThresholdsSection } from "./settings/ThresholdsSection";
+import { DisplaySection } from "./settings/DisplaySection";
 
 export function ResourcesMonitorSettingsTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -13,6 +15,8 @@ export function ResourcesMonitorSettingsTab() {
   const [thresholds, setThresholds] =
     useState<Record<string, { warn: number; critical: number }>>(DEFAULT_THRESHOLDS);
   const [loading, setLoading] = useState(true);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     Promise.all([GetSettings(), GetCapabilities()])
@@ -38,10 +42,13 @@ export function ResourcesMonitorSettingsTab() {
     }
   };
 
-  const handleIntervalChange = async (newInterval: number) => {
+  const handleIntervalChange = (newInterval: number) => {
     setIntervalMs(newInterval);
+  };
+
+  const handleIntervalRelease = async () => {
     if (!settings) return;
-    const updated = { ...settings, intervalMs: newInterval };
+    const updated = { ...settings, intervalMs };
     setSettings(updated);
     try {
       await SaveSettings(updated);
@@ -81,16 +88,27 @@ export function ResourcesMonitorSettingsTab() {
     }
   };
 
-  const handleResetSettings = async () => {
-    if (window.confirm("Reset all settings to defaults?")) {
-      try {
-        await ResetSettings();
-        const updated = await GetSettings();
-        setSettings(updated);
-        setIntervalMs(updated.intervalMs);
-      } catch (err) {
-        console.error("Failed to reset settings:", err);
-      }
+  const handleSettingsChange = async (updated: Settings) => {
+    setSettings(updated);
+    try {
+      await SaveSettings(updated);
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
+  };
+
+  const handleResetConfirm = async () => {
+    setIsResetting(true);
+    try {
+      await ResetSettings();
+      const updated = await GetSettings();
+      setSettings(updated);
+      setIntervalMs(updated.intervalMs);
+      setResetModalOpen(false);
+    } catch (err) {
+      console.error("Failed to reset settings:", err);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -134,6 +152,9 @@ export function ResourcesMonitorSettingsTab() {
               step="500"
               value={intervalMs}
               onChange={(e) => handleIntervalChange(Number(e.target.value))}
+              onPointerUp={handleIntervalRelease}
+              onMouseUp={handleIntervalRelease}
+              onTouchEnd={handleIntervalRelease}
               className="w-full"
             />
             <div className="flex justify-between text-xs text-neutral-500">
@@ -149,19 +170,38 @@ export function ResourcesMonitorSettingsTab() {
           </div>
         </div>
 
+        {/* Display section */}
+        <DisplaySection
+          settings={settings}
+          enabledMetrics={enabledMetrics}
+          onSettingsChange={handleSettingsChange}
+        />
+
         {/* Thresholds section */}
         <ThresholdsSection thresholds={thresholds} enabledMetrics={enabledMetrics} />
 
         {/* Reset button */}
         <div className="border-t border-neutral-200 pt-4 dark:border-neutral-800">
           <button
-            onClick={handleResetSettings}
+            onClick={() => setResetModalOpen(true)}
             className="rounded bg-neutral-100 px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
           >
             Reset to Defaults
           </button>
         </div>
       </div>
+
+      {/* Reset confirmation modal */}
+      <ConfirmationModal
+        open={resetModalOpen}
+        title="Reset to Defaults"
+        description="This will reset all settings to their default values. This action cannot be undone."
+        confirmLabel="Reset"
+        confirmVariant="destructive"
+        isPending={isResetting}
+        onClose={() => setResetModalOpen(false)}
+        onConfirm={handleResetConfirm}
+      />
     </div>
   );
 }

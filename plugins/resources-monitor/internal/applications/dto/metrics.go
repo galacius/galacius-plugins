@@ -76,14 +76,36 @@ type Capabilities struct {
 	Uptime      bool `json:"uptime"`
 }
 
+type DisplayFormat struct {
+	Compact   bool   `json:"compact"`
+	Units     string `json:"units"`
+	Precision int    `json:"precision"`
+}
+
+type DisplaySettings struct {
+	Compact bool                      `json:"compact"`
+	Formats map[string]DisplayFormat `json:"formats"`
+}
+
 type Settings struct {
-	SchemaVersion   int   `json:"schemaVersion"`
-	IntervalMs      int   `json:"intervalMs"`
-	EnabledMetrics  map[string]bool `json:"enabledMetrics"`
-	MetricOrder     []string `json:"metricOrder"`
+	SchemaVersion   int              `json:"schemaVersion"`
+	IntervalMs      int              `json:"intervalMs"`
+	EnabledMetrics  map[string]bool  `json:"enabledMetrics"`
+	MetricOrder     []string         `json:"metricOrder"`
+	Display         DisplaySettings  `json:"display"`
 }
 
 func DefaultSettings() Settings {
+	metricClasses := []string{"cpu", "memory", "disk", "network", "battery", "loadAverage", "uptime"}
+	formats := make(map[string]DisplayFormat)
+	for _, mc := range metricClasses {
+		formats[mc] = DisplayFormat{
+			Compact:   false,
+			Units:     "auto",
+			Precision: 1,
+		}
+	}
+
 	return Settings{
 		SchemaVersion: 1,
 		IntervalMs: 2000,
@@ -97,5 +119,9 @@ func DefaultSettings() Settings {
 			"uptime":     true,
 		},
 		MetricOrder: []string{"cpu", "memory", "disk", "network", "battery", "loadAverage", "uptime"},
+		Display: DisplaySettings{
+			Compact: false,
+			Formats: formats,
+		},
 	}
 }

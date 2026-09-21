@@ -74,9 +74,19 @@ export interface Capabilities {
   uptime: boolean;
 }
 
+export interface DisplayFormat {
+  compact: boolean;
+  units: string;
+  precision: number;
+}
+
 export interface Settings {
   schemaVersion: number;
   intervalMs: number;
   enabledMetrics: Record<string, boolean>;
   metricOrder: string[];
+  display: {
+    compact: boolean;
+    formats: Record<string, DisplayFormat>;
+  };
 }
