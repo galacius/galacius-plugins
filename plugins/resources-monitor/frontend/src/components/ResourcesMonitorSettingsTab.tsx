@@ -6,6 +6,7 @@ import { ResourcesFooterWidget } from "./ResourcesFooterWidget";
 import { MetricOrderList } from "./settings/MetricOrderList";
 import { ThresholdsSection } from "./settings/ThresholdsSection";
 import { DisplaySection } from "./settings/DisplaySection";
+import { getSupportedEnabledMetrics, isKnownMetricClass } from "../utils";
 
 export function ResourcesMonitorSettingsTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -104,10 +105,12 @@ export function ResourcesMonitorSettingsTab() {
     return <div className="p-4">Loading...</div>;
   }
 
-  const enabledMetrics = settings.metricOrder.filter((m) => {
-    const metricKey = m as keyof Capabilities;
-    return settings.enabledMetrics[m] && capabilities[metricKey];
-  });
+  const knownMetricOrder = settings.metricOrder.filter(isKnownMetricClass);
+  const enabledMetrics = getSupportedEnabledMetrics(
+    settings.metricOrder,
+    settings.enabledMetrics,
+    capabilities
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -122,7 +125,7 @@ export function ResourcesMonitorSettingsTab() {
         <div>
           <h3 className="mb-3 text-sm font-semibold">Metrics</h3>
           <MetricOrderList
-            metricOrder={settings.metricOrder}
+            metricOrder={knownMetricOrder}
             enabledMetrics={settings.enabledMetrics}
             capabilities={capabilities}
             onToggle={handleMetricToggle}

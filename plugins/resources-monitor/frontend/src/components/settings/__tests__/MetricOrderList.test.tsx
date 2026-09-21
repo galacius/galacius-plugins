@@ -15,23 +15,15 @@ describe("MetricOrderList", () => {
   const mockCapabilities: Capabilities = {
     cpu: true,
     memory: true,
-    disk: true,
-    network: true,
-    battery: true,
-    loadAverage: true,
-    uptime: true,
+    diskio: true,
   };
 
   const defaultProps = {
-    metricOrder: ["cpu", "memory", "disk", "network", "battery"],
+    metricOrder: ["cpu", "memory", "diskio"],
     enabledMetrics: {
       cpu: true,
       memory: true,
-      disk: true,
-      network: true,
-      battery: true,
-      loadAverage: false,
-      uptime: false,
+      diskio: true,
     },
     capabilities: mockCapabilities,
     onToggle: vi.fn(),
@@ -62,11 +54,7 @@ describe("MetricOrderList", () => {
     const capabilities: Capabilities = {
       cpu: true,
       memory: false,
-      disk: true,
-      network: true,
-      battery: true,
-      loadAverage: true,
-      uptime: true,
+      diskio: true,
     };
 
     render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);

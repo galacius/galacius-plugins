@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { ResourcesFooterWidget } from "../ResourcesFooterWidget";
 import { getThresholdColor } from "../../utils";
 import { GetSettings, GetCapabilities } from "../../api/bridge";
@@ -16,12 +16,8 @@ vi.mock("../../api/bridge", () => ({
 // version happens to be installed (published npm vs. the local link override).
 vi.mock("@galacius/design-system", () => ({
   CpuIcon: () => null,
-  HardDriveIcon: () => null,
   MemoryStickIcon: () => null,
-  NetworkIcon: () => null,
-  BatteryIcon: () => null,
-  TrendingUpIcon: () => null,
-  ClockIcon: () => null,
+  HardDriveIcon: () => null,
 }));
 
 vi.mock("../../stores/liveSampleStore", () => ({
@@ -34,42 +30,32 @@ const baseSettings: Settings = {
   enabledMetrics: {
     cpu: true,
     memory: true,
-    disk: true,
-    network: true,
-    battery: true,
-    loadAverage: false,
-    uptime: false,
+    diskio: true,
   },
-  metricOrder: ["cpu", "memory", "disk", "network", "battery"],
+  metricOrder: ["cpu", "memory", "diskio"],
   display: { compact: false, formats: {} },
 };
 
 const baseCapabilities: Capabilities = {
   cpu: true,
   memory: true,
-  disk: true,
-  network: true,
-  battery: true,
-  loadAverage: true,
-  uptime: true,
+  diskio: true,
 };
 
 const baseSample: ResourcesSample = {
   timestamp: Date.now(),
-  cpu: { usagePercent: 12.3, perCore: [12.3] },
+  cpu: { usagePercent: 12.3, processes: [] },
   memory: {
     usedPercent: 40,
     usedBytes: 0,
     totalBytes: 0,
-    swapPercent: 0,
-    swapUsedBytes: 0,
-    swapTotalBytes: 0,
+    processes: [],
   },
-  disk: { disks: [{ usedPercent: 30, usedBytes: 0, totalBytes: 0, path: "/" }] },
-  network: {
-    interfaces: [{ bytesSent: 0, bytesRecv: 0, packetsSent: 0, packetsRecv: 0, name: "en0" }],
+  diskIO: {
+    readBytesPerSec: 1024,
+    writeBytesPerSec: 2048,
+    processes: [],
   },
-  battery: { percent: 5, timeRemaining: 10, state: "discharging", plugged: false },
   degraded: false,
 };
 
@@ -78,7 +64,7 @@ describe("ResourcesFooterWidget severity logic (getThresholdColor)", () => {
     expect(getThresholdColor(95, 70, 90)).toBe("destructive");
   });
 
-  it("returns destructive for critically low battery (lower-is-worse)", () => {
+  it("returns destructive for a critically low value when lower-is-worse", () => {
     expect(getThresholdColor(5, 20, 10, true)).toBe("destructive");
   });
 });
@@ -86,6 +72,10 @@ describe("ResourcesFooterWidget severity logic (getThresholdColor)", () => {
 describe("ResourcesFooterWidget", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("renders skeleton chips while settings/capabilities are loading", async () => {
@@ -119,15 +109,65 @@ describe("ResourcesFooterWidget", () => {
     await waitFor(() => expect(screen.getByText("Unavailable")).toBeInTheDocument());
   });
 
-  it("marks a critically-low battery chip as destructive severity, not healthy", async () => {
+  it("marks a critically-high memory chip as destructive severity, not healthy", async () => {
     vi.mocked(GetSettings).mockResolvedValue(baseSettings);
+    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
+    vi.mocked(useLiveSampleStore).mockReturnValue({
+      ...baseSample,
+      memory: { usedPercent: 97, usedBytes: 0, totalBytes: 0, processes: [] },
+    });
+
+    render(<ResourcesFooterWidget />);
+
+    const memoryChip = await waitFor(() => screen.getByTitle("memory: 97.0%"));
+    expect(memoryChip.className).toContain("text-destructive");
+  });
+
+  it("marks a critically-high disk I/O chip as destructive severity", async () => {
+    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
+    vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
+    vi.mocked(useLiveSampleStore).mockReturnValue({
+      ...baseSample,
+      diskIO: {
+        readBytesPerSec: 100 * 1024 * 1024,
+        writeBytesPerSec: 100 * 1024 * 1024,
+        processes: [],
+      },
+    });
+
+    render(<ResourcesFooterWidget />);
+
+    const diskioChip = await waitFor(() => screen.getByTitle("diskio: 200.0MB/s"));
+    expect(diskioChip.className).toContain("text-destructive");
+  });
+
+  it("shows N/A for an enabled metric the platform doesn't support", async () => {
+    vi.mocked(GetSettings).mockResolvedValue(baseSettings);
+    vi.mocked(GetCapabilities).mockResolvedValue({ ...baseCapabilities, diskio: false });
+    vi.mocked(useLiveSampleStore).mockReturnValue(baseSample);
+
+    render(<ResourcesFooterWidget />);
+
+    const diskioChip = await waitFor(() =>
+      screen.getByTitle("diskio is not available on this platform")
+    );
+    expect(diskioChip).toHaveTextContent("N/A");
+  });
+
+  it("ignores stale metric classes persisted from a removed metric", async () => {
+    vi.mocked(GetSettings).mockResolvedValue({
+      ...baseSettings,
+      enabledMetrics: { ...baseSettings.enabledMetrics, battery: true, network: true },
+      metricOrder: ["cpu", "memory", "diskio", "battery", "network"],
+    });
     vi.mocked(GetCapabilities).mockResolvedValue(baseCapabilities);
     vi.mocked(useLiveSampleStore).mockReturnValue(baseSample);
 
     render(<ResourcesFooterWidget />);
 
-    const batteryChip = await waitFor(() => screen.getByTitle("battery: 5.0%"));
-    expect(batteryChip.className).toContain("text-destructive");
+    await waitFor(() => screen.getByTitle("cpu: 12.3%"));
+    expect(screen.queryByText("battery")).not.toBeInTheDocument();
+    expect(screen.queryByText("network")).not.toBeInTheDocument();
   });
 
   it("does not mark a healthy CPU chip as destructive", async () => {

@@ -3,7 +3,6 @@ module github.com/galacius/galacius-plugins/plugins/resources-monitor
 go 1.27.0
 
 require (
-	github.com/distatus/battery v0.11.0
 	github.com/galacius/galacius/packages/core v1.0.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/shirou/gopsutil/v4 v4.25.1
@@ -29,7 +28,6 @@ require (
 	google.golang.org/grpc v1.83.2 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	honnef.co/go/tools v0.7.0 // indirect
-	howett.net/plist v1.0.0 // indirect
 )
 
 tool honnef.co/go/tools/cmd/staticcheck

@@ -1,12 +1,6 @@
 import { createPluginBridge } from "@galacius/core";
 import { PLUGIN_ID } from "../const";
-import type {
-  Capabilities,
-  DiskMetrics,
-  NetworkMetrics,
-  ResourcesSample,
-  Settings,
-} from "./resources";
+import type { Capabilities, ResourcesSample, Settings } from "./resources";
 
 export type { PluginError } from "@galacius/core";
 
@@ -23,12 +17,6 @@ export const SaveSettings = (settings: Settings): Promise<Settings> =>
 
 export const GetCapabilities = (): Promise<Capabilities> =>
   bridge.fetchWithRetry<Capabilities>("getCapabilities", {});
-
-export const ListDisks = (): Promise<DiskMetrics> =>
-  bridge.fetchWithRetry<DiskMetrics>("listDisks", {});
-
-export const ListInterfaces = (): Promise<NetworkMetrics> =>
-  bridge.fetchWithRetry<NetworkMetrics>("listInterfaces", {});
 
 export const ResetSettings = (): Promise<{ status: string }> =>
   bridge.fetchWithRetry<{ status: string }>("resetSettings", {});

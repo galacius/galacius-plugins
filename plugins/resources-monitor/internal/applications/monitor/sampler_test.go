@@ -23,24 +23,8 @@ func (m *mockCollector) CollectMemory(ctx context.Context) (*dto.MemoryMetric, e
 	return &dto.MemoryMetric{UsedPercent: 50.0}, nil
 }
 
-func (m *mockCollector) CollectDisk(ctx context.Context) (*dto.DiskMetrics, error) {
-	return &dto.DiskMetrics{}, nil
-}
-
-func (m *mockCollector) CollectNetwork(ctx context.Context) (*dto.NetworkMetrics, error) {
-	return &dto.NetworkMetrics{}, nil
-}
-
-func (m *mockCollector) CollectBattery(ctx context.Context) (*dto.BatteryMetric, error) {
-	return nil, nil
-}
-
-func (m *mockCollector) CollectLoadAverage(ctx context.Context) (*dto.LoadAverageMetric, error) {
-	return nil, nil
-}
-
-func (m *mockCollector) CollectUptime(ctx context.Context) (*dto.UptimeMetric, error) {
-	return &dto.UptimeMetric{UptimeSeconds: 1000}, nil
+func (m *mockCollector) CollectDiskIO(ctx context.Context) (*dto.DiskIOMetric, error) {
+	return &dto.DiskIOMetric{}, nil
 }
 
 func (m *mockCollector) GetCapabilities(ctx context.Context) dto.Capabilities {

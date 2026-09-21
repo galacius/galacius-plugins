@@ -2,25 +2,12 @@ package collector
 
 import (
 	"context"
+	"runtime"
 	"testing"
-
-	"github.com/galacius/galacius-plugins/plugins/resources-monitor/internal/applications/dto"
 )
 
-type testBatteryCollector struct {
-	shouldFail bool
-}
-
-func (t *testBatteryCollector) CollectBattery(ctx context.Context) (*dto.BatteryMetric, error) {
-	if t.shouldFail {
-		return nil, nil
-	}
-	return &dto.BatteryMetric{Percent: 80}, nil
-}
-
 func TestCollectorGetCapabilities(t *testing.T) {
-	batteryCollector := &testBatteryCollector{shouldFail: false}
-	collector := NewGopsutilCollector(batteryCollector)
+	collector := NewGopsutilCollector()
 
 	caps := collector.GetCapabilities(context.Background())
 
@@ -30,20 +17,14 @@ func TestCollectorGetCapabilities(t *testing.T) {
 	if !caps.Memory {
 		t.Errorf("Memory capability should be true")
 	}
-	if !caps.Disk {
-		t.Errorf("Disk capability should be true")
-	}
-	if !caps.Network {
-		t.Errorf("Network capability should be true")
-	}
-	if !caps.Uptime {
-		t.Errorf("Uptime capability should be true")
+	wantDiskIO := runtime.GOOS != "darwin"
+	if caps.DiskIO != wantDiskIO {
+		t.Errorf("DiskIO capability should be %v on %s, got %v", wantDiskIO, runtime.GOOS, caps.DiskIO)
 	}
 }
 
 func TestCollectorCollectCPU(t *testing.T) {
-	batteryCollector := &testBatteryCollector{}
-	collector := NewGopsutilCollector(batteryCollector)
+	collector := NewGopsutilCollector()
 
 	metric, err := collector.CollectCPU(context.Background())
 	if err != nil {
@@ -60,8 +41,7 @@ func TestCollectorCollectCPU(t *testing.T) {
 }
 
 func TestCollectorCollectMemory(t *testing.T) {
-	batteryCollector := &testBatteryCollector{}
-	collector := NewGopsutilCollector(batteryCollector)
+	collector := NewGopsutilCollector()
 
 	metric, err := collector.CollectMemory(context.Background())
 	if err != nil {
@@ -77,20 +57,24 @@ func TestCollectorCollectMemory(t *testing.T) {
 	}
 }
 
-func TestCollectorCollectUptime(t *testing.T) {
-	batteryCollector := &testBatteryCollector{}
-	collector := NewGopsutilCollector(batteryCollector)
+func TestCollectorCollectDiskIO(t *testing.T) {
+	collector := NewGopsutilCollector()
 
-	metric, err := collector.CollectUptime(context.Background())
+	metric, err := collector.CollectDiskIO(context.Background())
 	if err != nil {
-		t.Fatalf("CollectUptime failed: %v", err)
+		t.Fatalf("CollectDiskIO failed: %v", err)
 	}
 
 	if metric == nil {
-		t.Fatalf("expected uptime metric, got nil")
+		t.Fatalf("expected disk IO metric, got nil")
 	}
 
-	if metric.UptimeSeconds == 0 {
-		t.Errorf("uptime should not be 0")
+	// First sample always yields 0 throughput (no prior counters to diff
+	// against), regardless of platform support.
+	if metric.ReadBytesPerSec != 0 {
+		t.Errorf("expected 0 read bytes/sec on first sample, got %f", metric.ReadBytesPerSec)
+	}
+	if metric.WriteBytesPerSec != 0 {
+		t.Errorf("expected 0 write bytes/sec on first sample, got %f", metric.WriteBytesPerSec)
 	}
 }

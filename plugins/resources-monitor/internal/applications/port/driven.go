@@ -9,11 +9,7 @@ import (
 type MetricsCollector interface {
 	CollectCPU(ctx context.Context) (*dto.CPUMetric, error)
 	CollectMemory(ctx context.Context) (*dto.MemoryMetric, error)
-	CollectDisk(ctx context.Context) (*dto.DiskMetrics, error)
-	CollectNetwork(ctx context.Context) (*dto.NetworkMetrics, error)
-	CollectBattery(ctx context.Context) (*dto.BatteryMetric, error)
-	CollectLoadAverage(ctx context.Context) (*dto.LoadAverageMetric, error)
-	CollectUptime(ctx context.Context) (*dto.UptimeMetric, error)
+	CollectDiskIO(ctx context.Context) (*dto.DiskIOMetric, error)
 	GetCapabilities(ctx context.Context) dto.Capabilities
 }
 

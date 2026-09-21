@@ -1,77 +1,52 @@
+export interface ProcessCPUUsage {
+  name: string;
+  pid: number;
+  percent: number;
+}
+
 export interface CPUMetric {
   usagePercent: number;
-  perCore: number[];
+  processes: ProcessCPUUsage[];
+}
+
+export interface ProcessMemoryUsage {
+  name: string;
+  pid: number;
+  bytes: number;
 }
 
 export interface MemoryMetric {
   usedPercent: number;
   usedBytes: number;
   totalBytes: number;
-  swapPercent: number;
-  swapUsedBytes: number;
-  swapTotalBytes: number;
+  processes: ProcessMemoryUsage[];
 }
 
-export interface DiskMetric {
-  usedPercent: number;
-  usedBytes: number;
-  totalBytes: number;
-  path: string;
-}
-
-export interface DiskMetrics {
-  disks: DiskMetric[];
-}
-
-export interface NetworkMetric {
-  bytesSent: number;
-  bytesRecv: number;
-  packetsSent: number;
-  packetsRecv: number;
+export interface ProcessDiskIOUsage {
   name: string;
+  pid: number;
+  readBytesPerSec: number;
+  writeBytesPerSec: number;
 }
 
-export interface NetworkMetrics {
-  interfaces: NetworkMetric[];
-}
-
-export interface BatteryMetric {
-  percent: number;
-  timeRemaining: number;
-  state: string;
-  plugged: boolean;
-}
-
-export interface LoadAverageMetric {
-  load1: number;
-  load5: number;
-  load15: number;
-}
-
-export interface UptimeMetric {
-  uptimeSeconds: number;
+export interface DiskIOMetric {
+  readBytesPerSec: number;
+  writeBytesPerSec: number;
+  processes: ProcessDiskIOUsage[];
 }
 
 export interface ResourcesSample {
   timestamp: number;
   cpu?: CPUMetric;
   memory?: MemoryMetric;
-  disk?: DiskMetrics;
-  network?: NetworkMetrics;
-  battery?: BatteryMetric;
-  loadAverage?: LoadAverageMetric;
-  uptime?: UptimeMetric;
+  diskIO?: DiskIOMetric;
   degraded: boolean;
 }
 
 export interface Capabilities {
   cpu: boolean;
   memory: boolean;
-  disk: boolean;
-  network: boolean;
-  battery: boolean;
-  loadAverage: boolean;
-  uptime: boolean;
+  diskio: boolean;
 }
 
 export interface DisplayFormat {

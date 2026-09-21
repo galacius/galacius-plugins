@@ -46,8 +46,7 @@ func main() {
 		}
 	}
 
-	batteryCollector := collector.NewBatteryCollector()
-	metricsCollector := collector.NewGopsutilCollector(batteryCollector)
+	metricsCollector := collector.NewGopsutilCollector()
 
 	settingsStore, err := store.NewFileSettingsStore()
 	if err != nil {

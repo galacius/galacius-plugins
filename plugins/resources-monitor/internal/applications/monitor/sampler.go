@@ -126,29 +126,9 @@ func (s *Sampler) collectAndPublish(ctx context.Context) {
 		sample.Memory = memMetric
 	}
 
-	diskMetric, err := s.collector.CollectDisk(ctx)
+	diskIOMetric, err := s.collector.CollectDiskIO(ctx)
 	if err == nil {
-		sample.Disk = diskMetric
-	}
-
-	netMetric, err := s.collector.CollectNetwork(ctx)
-	if err == nil {
-		sample.Network = netMetric
-	}
-
-	batteryMetric, err := s.collector.CollectBattery(ctx)
-	if err == nil {
-		sample.Battery = batteryMetric
-	}
-
-	loadMetric, err := s.collector.CollectLoadAverage(ctx)
-	if err == nil {
-		sample.LoadAverage = loadMetric
-	}
-
-	uptimeMetric, err := s.collector.CollectUptime(ctx)
-	if err == nil {
-		sample.Uptime = uptimeMetric
+		sample.DiskIO = diskIOMetric
 	}
 
 	s.mu.Lock()

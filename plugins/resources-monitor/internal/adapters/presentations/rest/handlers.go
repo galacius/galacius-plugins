@@ -70,34 +70,6 @@ func (h *Handler) resetSettings(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]string{"status": "ok"})
 }
 
-func (h *Handler) listDisks(w http.ResponseWriter, r *http.Request) {
-	sample, err := h.svc.GetSnapshot(r.Context())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: get snapshot for list disks: %v\n", err)
-		writeJSON(w, dto.DiskMetrics{Disks: []dto.DiskMetric{}})
-		return
-	}
-	if sample.Disk == nil {
-		writeJSON(w, dto.DiskMetrics{Disks: []dto.DiskMetric{}})
-		return
-	}
-	writeJSON(w, sample.Disk)
-}
-
-func (h *Handler) listInterfaces(w http.ResponseWriter, r *http.Request) {
-	sample, err := h.svc.GetSnapshot(r.Context())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: get snapshot for list interfaces: %v\n", err)
-		writeJSON(w, dto.NetworkMetrics{Interfaces: []dto.NetworkMetric{}})
-		return
-	}
-	if sample.Network == nil {
-		writeJSON(w, dto.NetworkMetrics{Interfaces: []dto.NetworkMetric{}})
-		return
-	}
-	writeJSON(w, sample.Network)
-}
-
 func decodeBody(r *http.Request, v interface{}) (bool, error) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {

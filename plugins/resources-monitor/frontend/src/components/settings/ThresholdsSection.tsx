@@ -1,4 +1,11 @@
-import { METRIC_CLASS_LABELS, DEFAULT_THRESHOLDS } from "../../utils";
+import {
+  METRIC_CLASS_LABELS,
+  DEFAULT_THRESHOLDS,
+  METRIC_CLASS_UNITS,
+  METRIC_CLASS_SCALE_MAX,
+  formatBytesPerSec,
+  type MetricClass,
+} from "../../utils";
 import type { Settings } from "../../api/resources";
 
 interface ThresholdsSectionProps {
@@ -45,11 +52,18 @@ export function ThresholdsSection({
         {enabledMetrics.map((metricClass) => {
           const threshold = getThresholds(metricClass);
           const label = METRIC_CLASS_LABELS[metricClass as keyof typeof METRIC_CLASS_LABELS];
-          const isBattery = metricClass === "battery";
+          const unit = METRIC_CLASS_UNITS[metricClass as MetricClass];
+          const scaleMax = METRIC_CLASS_SCALE_MAX[metricClass as MetricClass];
 
           if (threshold.warn === 0 && threshold.critical === 0) {
             return null;
           }
+
+          const warnBarPercent = Math.min((threshold.warn / scaleMax) * 100, 100);
+          const criticalBarPercent = Math.min((threshold.critical / scaleMax) * 100, 100);
+
+          const formatValue = (value: number) =>
+            unit === "bytesPerSec" ? formatBytesPerSec(value) : `${value}%`;
 
           return (
             <div
@@ -62,60 +76,39 @@ export function ThresholdsSection({
               <div className="mb-3 flex h-6 gap-2">
                 <div className="relative flex-1 rounded bg-neutral-200 dark:bg-neutral-800">
                   <div className="absolute top-0 right-0 bottom-0 left-0 flex">
-                    {isBattery ? (
-                      <>
-                        <div
-                          className="bg-red-500/30"
-                          style={{ width: `${threshold.critical}%` }}
-                        />
-                        <div
-                          className="bg-yellow-500/30"
-                          style={{
-                            width: `${threshold.warn - threshold.critical}%`,
-                          }}
-                        />
-                        <div
-                          className="bg-green-500/30"
-                          style={{ width: `${100 - threshold.warn}%` }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <div className="bg-green-500/30" style={{ width: `${threshold.warn}%` }} />
-                        <div
-                          className="bg-yellow-500/30"
-                          style={{
-                            width: `${threshold.critical - threshold.warn}%`,
-                          }}
-                        />
-                        <div
-                          className="bg-red-500/30"
-                          style={{ width: `${100 - threshold.critical}%` }}
-                        />
-                      </>
-                    )}
+                    <div className="bg-green-500/30" style={{ width: `${warnBarPercent}%` }} />
+                    <div
+                      className="bg-yellow-500/30"
+                      style={{
+                        width: `${criticalBarPercent - warnBarPercent}%`,
+                      }}
+                    />
+                    <div
+                      className="bg-red-500/30"
+                      style={{ width: `${100 - criticalBarPercent}%` }}
+                    />
                   </div>
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-yellow-600"
-                    style={{ left: `${threshold.warn}%` }}
-                    title={`Warning: ${threshold.warn}%`}
+                    style={{ left: `${warnBarPercent}%` }}
+                    title={`Warning: ${formatValue(threshold.warn)}`}
                   />
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-red-600"
-                    style={{ left: `${threshold.critical}%` }}
-                    title={`Critical: ${threshold.critical}%`}
+                    style={{ left: `${criticalBarPercent}%` }}
+                    title={`Critical: ${formatValue(threshold.critical)}`}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-neutral-600 dark:text-neutral-400">
-                    Warning %
+                    Warning {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
                   <input
                     type="number"
                     min="0"
-                    max="100"
+                    max={scaleMax}
                     value={threshold.warn}
                     onChange={(e) =>
                       handleThresholdChange(metricClass, "warn", Number(e.target.value))
@@ -125,12 +118,12 @@ export function ThresholdsSection({
                 </div>
                 <div>
                   <label className="text-xs text-neutral-600 dark:text-neutral-400">
-                    Critical %
+                    Critical {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
                   <input
                     type="number"
                     min="0"
-                    max="100"
+                    max={scaleMax}
                     value={threshold.critical}
                     onChange={(e) =>
                       handleThresholdChange(metricClass, "critical", Number(e.target.value))

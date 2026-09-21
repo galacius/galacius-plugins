@@ -51,8 +51,6 @@ func NewHttpServer(listen, version string, svc port.MonitorService) (*HttpServer
 	router.Post("/api/resources-monitor/getSettings", h.getSettings)
 	router.Post("/api/resources-monitor/saveSettings", h.saveSettings)
 	router.Post("/api/resources-monitor/getCapabilities", h.getCapabilities)
-	router.Post("/api/resources-monitor/listDisks", h.listDisks)
-	router.Post("/api/resources-monitor/listInterfaces", h.listInterfaces)
 	router.Post("/api/resources-monitor/resetSettings", h.resetSettings)
 
 	return &HttpServer{

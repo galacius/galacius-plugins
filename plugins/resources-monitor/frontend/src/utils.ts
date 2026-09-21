@@ -15,26 +15,8 @@ export function formatBytes(bytes: number): string {
   return size.toFixed(1) + units[unitIndex];
 }
 
-export function formatLoadAverage(value: number, decimals = 2): string {
-  return value.toFixed(decimals);
-}
-
-export function formatBatteryTime(minutes: number): string {
-  if (minutes === 0) return "–";
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hours}h${mins}m`;
-}
-
-export function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${mins}m`;
-  return `${mins}m`;
+export function formatBytesPerSec(bytesPerSec: number): string {
+  return `${formatBytes(bytesPerSec)}/s`;
 }
 
 export function getThresholdColor(
@@ -53,25 +35,66 @@ export function getThresholdColor(
   return undefined;
 }
 
-export type MetricClass =
-  "cpu" | "memory" | "disk" | "network" | "battery" | "loadAverage" | "uptime";
+export type MetricClass = "cpu" | "memory" | "diskio";
 
 export const METRIC_CLASS_LABELS: Record<MetricClass, string> = {
   cpu: "CPU",
   memory: "Memory",
-  disk: "Disk",
-  network: "Network",
-  battery: "Battery",
-  loadAverage: "Load",
-  uptime: "Uptime",
+  diskio: "Disk I/O",
+};
+
+// "percent" metrics are 0-100 and compared/rendered as a percentage;
+// "bytesPerSec" metrics are unbounded raw throughput. Thresholds for both
+// are stored and compared in the metric's own native unit.
+export const METRIC_CLASS_UNITS: Record<MetricClass, "percent" | "bytesPerSec"> = {
+  cpu: "percent",
+  memory: "percent",
+  diskio: "bytesPerSec",
+};
+
+// Upper bound used for threshold-input max attributes and for scaling the
+// warn/critical gradient bar in the thresholds UI.
+export const METRIC_CLASS_SCALE_MAX: Record<MetricClass, number> = {
+  cpu: 100,
+  memory: 100,
+  diskio: 500 * 1024 * 1024, // 500 MB/s
 };
 
 export const DEFAULT_THRESHOLDS: Record<MetricClass, { warn: number; critical: number }> = {
   cpu: { warn: 70, critical: 90 },
   memory: { warn: 70, critical: 85 },
-  disk: { warn: 80, critical: 95 },
-  network: { warn: 0, critical: 0 },
-  battery: { warn: 20, critical: 10 },
-  loadAverage: { warn: 0, critical: 0 },
-  uptime: { warn: 0, critical: 0 },
+  diskio: { warn: 50 * 1024 * 1024, critical: 150 * 1024 * 1024 },
 };
+
+const KNOWN_METRIC_CLASSES = new Set(Object.keys(METRIC_CLASS_LABELS));
+
+// Settings/metricOrder are persisted on disk and can carry metric classes
+// from a previous version of the plugin that no longer exist (e.g. a removed
+// "battery" or "network" metric). The frontend should never render those —
+// only a currently-known metric class may show up, and only an unsupported
+// *known* one (e.g. diskio on macOS) should render as N/A.
+export function isKnownMetricClass(metricClass: string): metricClass is MetricClass {
+  return KNOWN_METRIC_CLASSES.has(metricClass);
+}
+
+// Metrics the user has turned on, regardless of whether the current platform
+// supports them (an unsupported-but-enabled metric is still shown, as N/A).
+// Unknown/stale metric classes are always dropped.
+export function getEnabledMetrics(
+  metricOrder: string[],
+  enabledMetrics: Record<string, boolean>
+): string[] {
+  return metricOrder.filter((m) => isKnownMetricClass(m) && enabledMetrics[m]);
+}
+
+// Metrics the user has turned on AND that the current platform can actually
+// collect. Use this where showing an N/A placeholder wouldn't make sense
+// (e.g. threshold/display configuration for a metric with no data).
+export function getSupportedEnabledMetrics(
+  metricOrder: string[],
+  enabledMetrics: Record<string, boolean>,
+  capabilities: object
+): string[] {
+  const capabilityMap = capabilities as Record<string, boolean>;
+  return getEnabledMetrics(metricOrder, enabledMetrics).filter((m) => capabilityMap[m]);
+}
