@@ -17,8 +17,14 @@ type FileSettingsStore struct {
 }
 
 // hostStorageDir mirrors the host app's internal/storage.Dir() base-directory
-// resolution (GALACIUS_ROOT_DIR override, else $HOME/.galacius), since that
-// helper is host-internal and not exposed via packages/core for plugins to import.
+// resolution, since that helper is host-internal and not exposed via
+// packages/core for plugins to import. The host always sets GALACIUS_ROOT_DIR
+// when launching a plugin subprocess (internal/plugin/loader.go), passing its
+// own resolved storage.Dir() — which is itself dev/production aware (dev mode
+// resolves to build/storage under the host's working directory instead of
+// ~/.galacius) — so the plugin's storage stays colocated with the host's
+// regardless of mode. The $HOME/.galacius fallback below only applies when
+// running the plugin binary standalone, outside the host.
 func hostStorageDir(elem ...string) (string, error) {
 	base := os.Getenv("GALACIUS_ROOT_DIR")
 	if base == "" {
