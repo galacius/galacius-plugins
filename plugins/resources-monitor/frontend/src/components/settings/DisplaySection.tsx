@@ -1,6 +1,12 @@
-import { FC } from "react";
+import { Switch } from "@galacius/design-system";
+import { FC, useCallback } from "react";
 import type { DisplayFormat, Settings } from "../../api/resources";
 import { METRIC_CLASS_LABELS, MetricClass } from "../../utils";
+
+const getDefaultFormat = (): DisplayFormat => ({
+  units: "auto",
+  precision: 1,
+});
 
 interface DisplaySectionProps {
   settings: Settings;
@@ -13,42 +19,39 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
   enabledMetrics,
   onSettingsChange,
 }) => {
-  const handleCompactToggle = (checked: boolean) => {
-    const updated = {
-      ...settings,
-      display: {
-        ...settings.display,
-        compact: checked,
-      },
-    };
-    onSettingsChange(updated);
-  };
+  const handleCompactToggle = useCallback(
+    (checked: boolean) => {
+      const updated = {
+        ...settings,
+        display: {
+          ...settings.display,
+          compact: checked,
+        },
+      };
+      onSettingsChange(updated);
+    },
+    [settings, onSettingsChange]
+  );
 
-  const handleFormatChange = (
-    metricClass: string,
-    field: keyof DisplayFormat,
-    value: string | number | boolean
-  ) => {
-    const updated = {
-      ...settings,
-      display: {
-        ...settings.display,
-        formats: {
-          ...settings.display.formats,
-          [metricClass]: {
-            ...settings.display.formats[metricClass],
-            [field]: value,
+  const handleFormatChange = useCallback(
+    (metricClass: string, field: keyof DisplayFormat, value: string | number | boolean) => {
+      const updated = {
+        ...settings,
+        display: {
+          ...settings.display,
+          formats: {
+            ...settings.display.formats,
+            [metricClass]: {
+              ...settings.display.formats[metricClass],
+              [field]: value,
+            },
           },
         },
-      },
-    };
-    onSettingsChange(updated);
-  };
-
-  const getDefaultFormat = (): DisplayFormat => ({
-    units: "auto",
-    precision: 1,
-  });
+      };
+      onSettingsChange(updated);
+    },
+    [settings, onSettingsChange]
+  );
 
   return (
     <div>
@@ -58,14 +61,16 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
         <div className="rounded border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/50">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium">Compact View</label>
+              <label htmlFor="compact-view-toggle" className="text-sm font-medium">
+                Compact View
+              </label>
               <p className="text-xs text-neutral-500">Show minimal metric values</p>
             </div>
-            <input
-              type="checkbox"
+            <Switch
+              id="compact-view-toggle"
               checked={settings.display.compact}
-              onChange={(e) => handleCompactToggle(e.target.checked)}
-              className="h-4 w-4 rounded"
+              onCheckedChange={handleCompactToggle}
+              aria-label="Compact View"
             />
           </div>
         </div>

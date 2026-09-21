@@ -102,6 +102,8 @@ export const ResourcesFooterWidget: FC = () => {
     return <div className="px-2 py-1 text-xs text-neutral-500">Unavailable</div>;
   }
 
+  const compact = settings.display.compact;
+
   return (
     <div className="flex items-center gap-1">
       {enabledMetrics?.map((metricClass) => {
@@ -116,6 +118,7 @@ export const ResourcesFooterWidget: FC = () => {
               disabled
               width={WORST_CASE_WIDTHS[metricClass]}
               title={`${metricClass} is not available on this platform`}
+              compact={compact}
             />
           );
         }
@@ -129,6 +132,7 @@ export const ResourcesFooterWidget: FC = () => {
             value={value || "—"}
             severity={severity}
             width={WORST_CASE_WIDTHS[metricClass]}
+            compact={compact}
           />
         );
       })}

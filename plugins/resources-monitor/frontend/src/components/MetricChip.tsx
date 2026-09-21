@@ -9,6 +9,7 @@ interface MetricChipProps {
   disabled?: boolean;
   title?: string;
   width?: string;
+  compact?: boolean;
 }
 
 export const MetricChip: FC<MetricChipProps> = ({
@@ -20,6 +21,7 @@ export const MetricChip: FC<MetricChipProps> = ({
   disabled,
   title,
   width,
+  compact,
 }) => {
   const baseClass = "flex items-center gap-1 px-2 py-1 rounded text-xs transition-opacity";
   const severityClass = disabled
@@ -37,7 +39,7 @@ export const MetricChip: FC<MetricChipProps> = ({
         style={{ width: width || "auto" }}
       >
         <span className="text-lg">{icon}</span>
-        <span className="flex-1">{label}</span>
+        {!compact && <span className="flex-1">{label}</span>}
         <span className="min-w-8 text-right font-mono text-xs">—</span>
       </div>
     );
@@ -46,7 +48,7 @@ export const MetricChip: FC<MetricChipProps> = ({
   return (
     <div className={`${baseClass} ${severityClass}`} title={title || `${label}: ${value}`}>
       <span className="text-lg">{icon}</span>
-      <span className="flex-1">{label}</span>
+      {!compact && <span className="flex-1">{label}</span>}
       <span className="min-w-8 text-right font-mono text-xs">{value}</span>
     </div>
   );
