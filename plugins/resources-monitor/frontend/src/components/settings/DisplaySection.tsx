@@ -44,7 +44,7 @@ export function DisplaySection({
     onSettingsChange(updated);
   };
 
-  const getDefaultFormat = (metricClass: string): DisplayFormat => ({
+  const getDefaultFormat = (): DisplayFormat => ({
     compact: false,
     units: "auto",
     precision: 1,
@@ -77,7 +77,7 @@ export function DisplaySection({
           </p>
           <div className="space-y-2">
             {enabledMetrics.map((metricClass) => {
-              const format = settings.display.formats[metricClass] || getDefaultFormat(metricClass);
+              const format = settings.display.formats[metricClass] || getDefaultFormat();
               const label = METRIC_CLASS_LABELS[metricClass as MetricClass];
 
               return (

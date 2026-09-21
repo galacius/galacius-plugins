@@ -34,7 +34,7 @@ export function MetricOrderList({
   return (
     <div className="space-y-2">
       {metricOrder.map((metricClass, index) => {
-        const isSupported = (capabilities as any)[metricClass];
+        const isSupported = (capabilities as Capabilities)[metricClass as keyof Capabilities];
         const isEnabled = enabledMetrics[metricClass];
         const label = METRIC_CLASS_LABELS[metricClass as keyof typeof METRIC_CLASS_LABELS];
 

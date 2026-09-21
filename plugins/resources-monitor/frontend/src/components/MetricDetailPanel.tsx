@@ -18,7 +18,7 @@ export function MetricDetailPanel({ metricClass, sample }: MetricDetailPanelProp
     return <div className="p-2 text-xs text-neutral-500">No data</div>;
   }
 
-  let content: ReactNode = null;
+  let content: ReactNode;
 
   if (metricClass === "cpu" && sample.cpu) {
     const { usagePercent, perCore } = sample.cpu;

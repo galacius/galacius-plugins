@@ -1,4 +1,3 @@
-import { Badge } from "@galacius/design-system";
 import { ReactNode } from "react";
 
 interface MetricChipProps {

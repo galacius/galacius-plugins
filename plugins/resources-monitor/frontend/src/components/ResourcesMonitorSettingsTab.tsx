@@ -2,18 +2,14 @@ import { useEffect, useState } from "react";
 import { ConfirmationModal } from "@galacius/design-system";
 import { GetSettings, GetCapabilities, SaveSettings, ResetSettings } from "../api/bridge";
 import type { Settings, Capabilities } from "../api/resources";
-import { METRIC_CLASS_LABELS, DEFAULT_THRESHOLDS } from "../utils";
 import { ResourcesFooterWidget } from "./ResourcesFooterWidget";
 import { MetricOrderList } from "./settings/MetricOrderList";
-import { ThresholdsSection } from "./settings/ThresholdsSection";
 import { DisplaySection } from "./settings/DisplaySection";
 
 export function ResourcesMonitorSettingsTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
   const [intervalMs, setIntervalMs] = useState(2000);
-  const [thresholds, setThresholds] =
-    useState<Record<string, { warn: number; critical: number }>>(DEFAULT_THRESHOLDS);
   const [loading, setLoading] = useState(true);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -32,15 +28,6 @@ export function ResourcesMonitorSettingsTab() {
         setLoading(false);
       });
   }, []);
-
-  const handleSaveSettings = async () => {
-    if (!settings) return;
-    try {
-      await SaveSettings(settings);
-    } catch (err) {
-      console.error("Failed to save settings:", err);
-    }
-  };
 
   const handleIntervalChange = (newInterval: number) => {
     setIntervalMs(newInterval);
@@ -117,7 +104,7 @@ export function ResourcesMonitorSettingsTab() {
   }
 
   const enabledMetrics = settings.metricOrder.filter(
-    (m) => settings.enabledMetrics[m] && (capabilities as any)[m]
+    (m) => settings.enabledMetrics[m] && (capabilities as Capabilities)[m]
   );
 
   return (
@@ -176,9 +163,6 @@ export function ResourcesMonitorSettingsTab() {
           enabledMetrics={enabledMetrics}
           onSettingsChange={handleSettingsChange}
         />
-
-        {/* Thresholds section */}
-        <ThresholdsSection thresholds={thresholds} enabledMetrics={enabledMetrics} />
 
         {/* Reset button */}
         <div className="border-t border-neutral-200 pt-4 dark:border-neutral-800">

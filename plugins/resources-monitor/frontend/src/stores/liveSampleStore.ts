@@ -3,11 +3,24 @@ import { GetSnapshot } from "../api/bridge";
 import type { ResourcesSample } from "../api/resources";
 
 let lastSample: ResourcesSample | null = null;
-let listeners: Set<() => void> = new Set();
+const listeners: Set<() => void> = new Set();
 let eventListenerRegistered = false;
 
 function notifyListeners() {
   listeners.forEach((listener) => listener());
+}
+
+interface WailsWindow {
+  go?: {
+    Run?: (topic: string, handler: (event: WailsEvent) => void) => void;
+  };
+}
+
+interface WailsEvent {
+  payload?: {
+    topic?: string;
+    data?: ResourcesSample;
+  };
 }
 
 function subscribeToEvents() {
@@ -15,9 +28,9 @@ function subscribeToEvents() {
   eventListenerRegistered = true;
 
   // Register event listener if available
-  if (typeof window !== "undefined" && (window as any).go?.Run) {
-    const go = (window as any).go;
-    go.Run("plugin:event", (event: any) => {
+  if (typeof window !== "undefined" && (window as WailsWindow).go?.Run) {
+    const go = (window as WailsWindow).go;
+    go.Run("plugin:event", (event: WailsEvent) => {
       if (event?.payload?.topic === "plugins.resources-monitor.metrics:sample") {
         try {
           lastSample = event.payload.data as ResourcesSample;
