@@ -3,6 +3,7 @@ import { Activity } from "@galacius/design-system";
 import { PLUGIN_ID } from "./const";
 import { ResourcesFooterWidget } from "./components/ResourcesFooterWidget";
 import { ResourcesMonitorSettingsTab } from "./components/ResourcesMonitorSettingsTab";
+import { eventHandlers } from "./events";
 
 appWideAPI.registerStylesheets(PLUGIN_ID, [import("./style.css")]);
 
@@ -18,9 +19,4 @@ appWideAPI.registerFooterWidget(PLUGIN_ID, {
   component: ResourcesFooterWidget,
 });
 
-appWideAPI.registerEvents(PLUGIN_ID, {
-  "plugins.resources-monitor.metrics:sample": (): void => {
-    // Event handler for the metrics sample event
-    // The actual handling is done in the liveSampleStore
-  },
-});
+appWideAPI.registerEvents(PLUGIN_ID, eventHandlers);

@@ -89,4 +89,5 @@ export interface Settings {
     compact: boolean;
     formats: Record<string, DisplayFormat>;
   };
+  thresholds?: Record<string, { warn: number; critical: number }>;
 }

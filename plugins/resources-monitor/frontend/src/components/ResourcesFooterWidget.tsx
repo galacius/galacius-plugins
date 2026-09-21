@@ -22,6 +22,19 @@ import {
 import { MetricChip } from "./MetricChip";
 import { FooterOverflowIndicator } from "./FooterOverflowIndicator";
 
+function getRawMetricValue(metricClass: string, s: ResourcesSample): number | null {
+  if (metricClass === "cpu" && s.cpu) {
+    return s.cpu.usagePercent;
+  } else if (metricClass === "memory" && s.memory) {
+    return s.memory.usedPercent;
+  } else if (metricClass === "disk" && s.disk && s.disk.disks.length > 0) {
+    return Math.max(...s.disk.disks.map((d) => d.usedPercent));
+  } else if (metricClass === "battery" && s.battery) {
+    return s.battery.percent;
+  }
+  return null;
+}
+
 const METRIC_ICONS: Record<string, React.ReactNode> = {
   cpu: <CpuIcon />,
   memory: <MemoryStickIcon />,
@@ -85,16 +98,20 @@ export function ResourcesFooterWidget() {
 
   function getSeverity(
     metricClass: string,
-    value: string | null
+    s: ResourcesSample
   ): "destructive" | "warning" | undefined {
-    if (!value || value === "—") return undefined;
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return undefined;
-    return getThresholdColor(
-      numValue,
-      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.warn || 0,
-      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS]?.critical || 0
-    );
+    const rawValue = getRawMetricValue(metricClass, s);
+    if (rawValue === null) return undefined;
+
+    const thresholds =
+      settings?.thresholds?.[metricClass] ||
+      DEFAULT_THRESHOLDS[metricClass as keyof typeof DEFAULT_THRESHOLDS];
+
+    if (thresholds.warn === 0 && thresholds.critical === 0) {
+      return undefined;
+    }
+
+    return getThresholdColor(rawValue, thresholds.warn, thresholds.critical);
   }
 
   function getSeverityRank(severity: "destructive" | "warning" | undefined): number {
@@ -139,7 +156,7 @@ export function ResourcesFooterWidget() {
 
     const metricsWithSeverity = enabledMetrics.map((m) => {
       const value = getMetricValue(m, sample);
-      const severity = getSeverity(m, value);
+      const severity = getSeverity(m, sample);
       return { metric: m, value, severity, severityRank: getSeverityRank(severity) };
     });
 
@@ -171,7 +188,7 @@ export function ResourcesFooterWidget() {
     <div className="flex items-center gap-1">
       {visibleMetrics.map((metricClass) => {
         const value = getMetricValue(metricClass, sample);
-        const severity = getSeverity(metricClass, value);
+        const severity = getSeverity(metricClass, sample);
 
         return (
           <MetricChip

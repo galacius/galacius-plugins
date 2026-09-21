@@ -8,7 +8,10 @@ interface FooterOverflowIndicatorProps {
   sample: ResourcesSample | null;
   getMetricIcon: (metricClass: string) => React.ReactNode;
   getMetricValue: (metricClass: string, sample: ResourcesSample) => string | null;
-  getSeverity: (metricClass: string, value: string | null) => "warning" | "destructive" | undefined;
+  getSeverity: (
+    metricClass: string,
+    sample: ResourcesSample
+  ) => "warning" | "destructive" | undefined;
 }
 
 export function FooterOverflowIndicator({
@@ -32,15 +35,12 @@ export function FooterOverflowIndicator({
         +{overflowMetrics.length}
       </button>
 
-      {isOpen && (
+      {isOpen && sample && (
         <div className="absolute right-0 z-50 mt-1 min-w-64 rounded-md border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-800 dark:bg-neutral-950">
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {overflowMetrics.map((metricClass) => {
-              const value =
-                sample && getMetricValue(metricClass, sample)
-                  ? getMetricValue(metricClass, sample)
-                  : null;
-              const severity = getSeverity(metricClass, value);
+              const value = getMetricValue(metricClass, sample);
+              const severity = getSeverity(metricClass, sample);
               return (
                 <div key={metricClass} className="flex items-center gap-2">
                   <MetricChip

@@ -87,17 +87,24 @@ type DisplaySettings struct {
 	Formats map[string]DisplayFormat `json:"formats"`
 }
 
+type Threshold struct {
+	Warn     float64 `json:"warn"`
+	Critical float64 `json:"critical"`
+}
+
 type Settings struct {
-	SchemaVersion   int              `json:"schemaVersion"`
-	IntervalMs      int              `json:"intervalMs"`
-	EnabledMetrics  map[string]bool  `json:"enabledMetrics"`
-	MetricOrder     []string         `json:"metricOrder"`
-	Display         DisplaySettings  `json:"display"`
+	SchemaVersion   int                    `json:"schemaVersion"`
+	IntervalMs      int                    `json:"intervalMs"`
+	EnabledMetrics  map[string]bool        `json:"enabledMetrics"`
+	MetricOrder     []string               `json:"metricOrder"`
+	Display         DisplaySettings        `json:"display"`
+	Thresholds      map[string]Threshold   `json:"thresholds"`
 }
 
 func DefaultSettings() Settings {
 	metricClasses := []string{"cpu", "memory", "disk", "network", "battery", "loadAverage", "uptime"}
 	formats := make(map[string]DisplayFormat)
+	thresholds := make(map[string]Threshold)
 	for _, mc := range metricClasses {
 		formats[mc] = DisplayFormat{
 			Compact:   false,
@@ -105,6 +112,14 @@ func DefaultSettings() Settings {
 			Precision: 1,
 		}
 	}
+
+	thresholds["cpu"] = Threshold{Warn: 70, Critical: 90}
+	thresholds["memory"] = Threshold{Warn: 70, Critical: 85}
+	thresholds["disk"] = Threshold{Warn: 80, Critical: 95}
+	thresholds["network"] = Threshold{Warn: 0, Critical: 0}
+	thresholds["battery"] = Threshold{Warn: 20, Critical: 10}
+	thresholds["loadAverage"] = Threshold{Warn: 0, Critical: 0}
+	thresholds["uptime"] = Threshold{Warn: 0, Critical: 0}
 
 	return Settings{
 		SchemaVersion: 1,
@@ -123,5 +138,6 @@ func DefaultSettings() Settings {
 			Compact: false,
 			Formats: formats,
 		},
+		Thresholds: thresholds,
 	}
 }
