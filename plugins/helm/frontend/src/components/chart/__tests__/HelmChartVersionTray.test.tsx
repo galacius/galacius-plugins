@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { createElement } from "react";
+import { Children, cloneElement, createElement, isValidElement, useRef, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
@@ -27,6 +27,127 @@ vi.mock("@galacius/core", () => ({
       resourceLinks: {},
       unifiedTray: null,
     })),
+  },
+}));
+
+// The linked @galacius/design-system pulls its own React instance under jsdom
+// (see vitest.config.ts NOTE in plugins/resources-monitor/frontend) — mocking
+// per test file avoids the resulting dual-React-instance crash.
+// FullTextSearchInput and useFullTextSearch are mocked with functionally real
+// behavior (faithfully mirroring
+// galacius/packages/design-system/src/libs/full-text-search/*, verified by
+// reading the real source since it's linked in) — case-insensitive substring
+// search, match count, cyclic next-match — because several tests assert on
+// live search/typing behavior. Button/Input are real controlled-element
+// passthroughs since tests query them by role/label. The rest (icons,
+// NameSpaceSelectDropdown, Tooltip*, Textarea) are decorative or unexercised
+// by any assertion here.
+vi.mock("@galacius/design-system", () => ({
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Input: ({ value, onChange, ...props }: any) => (
+    <input value={value} onChange={onChange} {...props} />
+  ),
+  CheckIcon: () => null,
+  ChevronDownIcon: () => null,
+  Loader2Icon: () => null,
+  NameSpaceSelectDropdown: () => null,
+  RotateCcwIcon: () => null,
+  DropdownMenu: ({ children }: any) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        {Children.map(children, (child) =>
+          isValidElement(child)
+            ? cloneElement(child as any, { __open: open, __setOpen: setOpen })
+            : child
+        )}
+      </>
+    );
+  },
+  DropdownMenuTrigger: ({ children, className, disabled, __open, __setOpen }: any) => (
+    <button className={className} disabled={disabled} onClick={() => __setOpen(!__open)}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children, __open }: any) => (__open ? <div>{children}</div> : null),
+  DropdownMenuItem: ({ children, onClick, className }: any) => (
+    <div role="menuitem" className={className} onClick={onClick}>
+      {children}
+    </div>
+  ),
+  Textarea: ({ value, onChange, ...props }: any) => (
+    <textarea value={value} onChange={onChange} {...props} />
+  ),
+  Tooltip: ({ children }: any) => <>{children}</>,
+  TooltipContent: ({ children }: any) => <>{children}</>,
+  TooltipTrigger: ({ render }: any) => render ?? null,
+  cn: (...args: any[]) => args.filter(Boolean).join(" "),
+  FullTextSearchInput: ({
+    searchTerm,
+    matchCount,
+    currentMatchIdx,
+    onSearch,
+    onSearchNext,
+    ariaLabel,
+  }: any) => (
+    <div>
+      <input
+        aria-label={ariaLabel}
+        placeholder="Search…"
+        value={searchTerm}
+        onChange={(e) => onSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onSearchNext();
+          }
+        }}
+      />
+      <output>
+        {searchTerm ? (matchCount === 0 ? "0" : `${currentMatchIdx + 1}/${matchCount}`) : ""}
+      </output>
+    </div>
+  ),
+  useFullTextSearch: ({ text }: { text: string }) => {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [matches, setMatches] = useState<number[]>([]);
+    const [currentMatchIdx, setCurrentMatchIdx] = useState(0);
+    const contentRef = useRef(null);
+
+    const handleSearch = (term: string) => {
+      setSearchTerm(term);
+      if (!term || !text) {
+        setMatches([]);
+        setCurrentMatchIdx(0);
+        return;
+      }
+      const lowerText = text.toLowerCase();
+      const lowerTerm = term.toLowerCase();
+      const found: number[] = [];
+      let idx = 0;
+      let pos: number;
+      while ((pos = lowerText.indexOf(lowerTerm, idx)) !== -1) {
+        found.push(pos);
+        idx = pos + lowerTerm.length;
+      }
+      setMatches(found);
+      setCurrentMatchIdx(0);
+    };
+
+    const handleSearchNext = () => {
+      if (!matches.length) return;
+      setCurrentMatchIdx((idx) => (idx + 1) % matches.length);
+    };
+
+    return {
+      searchTerm,
+      matchCount: matches.length,
+      currentMatchIdx,
+      activeMatchCharIdx: matches.length > 0 ? matches[currentMatchIdx] : -1,
+      contentRef,
+      handleSearch,
+      handleSearchNext,
+    };
   },
 }));
 

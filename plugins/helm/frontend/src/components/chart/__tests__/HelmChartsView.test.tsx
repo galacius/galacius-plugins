@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createElement } from "react";
+import { Children, cloneElement, createElement, isValidElement, useState } from "react";
 import type { HelmChart } from "../../../api/resources";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
@@ -43,6 +43,70 @@ vi.mock("@galacius/core", () => ({
 
 vi.mock("../../../api/bridge", () => ({
   setActiveContext: vi.fn(),
+}));
+
+// The linked @galacius/design-system pulls its own React instance under jsdom
+// (see vitest.config.ts NOTE in plugins/resources-monitor/frontend) — mocking
+// per test file avoids the resulting dual-React-instance crash. Table/*,
+// SearchInput, the repo-filter DropdownMenu*, EmptyState and TruncatedText
+// are mocked as faithful passthroughs (real DOM structure + real
+// value/onChange wiring) because tests assert on rendered row content,
+// filtering, and dropdown-checkbox interaction; icons and the skeleton
+// loader are purely decorative and stubbed as no-ops.
+vi.mock("@galacius/design-system", () => ({
+  ChevronDownIcon: () => null,
+  PackageIcon: () => null,
+  DropdownMenu: ({ children }: any) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        {Children.map(children, (child) =>
+          isValidElement(child)
+            ? cloneElement(child as any, { __open: open, __setOpen: setOpen })
+            : child
+        )}
+      </>
+    );
+  },
+  DropdownMenuTrigger: ({ children, className, disabled, __open, __setOpen }: any) => (
+    <button className={className} disabled={disabled} onClick={() => __setOpen(!__open)}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children, __open }: any) => (__open ? <div>{children}</div> : null),
+  DropdownMenuCheckboxItem: ({ children, checked, onCheckedChange }: any) => (
+    <div role="menuitemcheckbox" aria-checked={checked} onClick={() => onCheckedChange?.()}>
+      {children}
+    </div>
+  ),
+  EmptyState: ({ title, description }: any) => (
+    <div>
+      <p>{title}</p>
+      <p>{description}</p>
+    </div>
+  ),
+  SearchInput: ({ placeholder, value, onChange, disabled, wrapperClassName }: any) => (
+    <div className={wrapperClassName}>
+      <input placeholder={placeholder} value={value} onChange={onChange} disabled={disabled} />
+    </div>
+  ),
+  Table: ({ children }: any) => <table>{children}</table>,
+  TableHeader: ({ children, className }: any) => <thead className={className}>{children}</thead>,
+  TableBody: ({ children }: any) => <tbody>{children}</tbody>,
+  TableRow: ({ children, className, onClick }: any) => (
+    <tr className={className} onClick={onClick}>
+      {children}
+    </tr>
+  ),
+  TableHead: ({ children, className }: any) => <th className={className}>{children}</th>,
+  TableCell: ({ children, className, colSpan }: any) => (
+    <td className={className} colSpan={colSpan}>
+      {children}
+    </td>
+  ),
+  TableSkeletonLoader: () => null,
+  TruncatedText: ({ text }: any) => <span>{text}</span>,
+  cn: (...args: any[]) => args.filter(Boolean).join(" "),
 }));
 
 // ─── imports after mocks ──────────────────────────────────────────────────────
