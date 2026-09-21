@@ -1,5 +1,6 @@
 packages:
   - "plugins/helm/frontend"
+  - "plugins/resources-monitor/frontend"
 allowBuilds:
   "@parcel/watcher": true
   esbuild: true
