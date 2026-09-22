@@ -27,23 +27,23 @@
     "lint:fe": "eslint plugins/helm/frontend/src plugins/resources-monitor/frontend/src",
     "lint:be": "go vet -C plugins/helm ./... && go tool -C plugins/helm staticcheck ./... && go vet -C plugins/resources-monitor ./... && go tool -C plugins/resources-monitor staticcheck ./...",
     "prepare": "husky",
-    "upgrade:all:fe": "ncu -u -t minor --dep prod,dev,optional --workspaces --root && pnpm install",
+    "upgrade:all:fe": "ncu -u -t minor --dep prod,dev,optional --workspaces --root && pnpm install && pnpm dedupe",
     "upgrade:all:helm:be": "go get -C plugins/helm -u -t ./... && go mod tidy -C plugins/helm",
     "upgrade:all:resources-monitor:be": "go get -C plugins/resources-monitor -u -t ./... && go mod tidy -C plugins/resources-monitor",
-    "upgrade:all": "pnpm upgrade:all:fe && pnpm upgrade:all:helm:be && pnpm upgrade:all:resources-monitor:be"
+    "upgrade:all": "pnpm upgrade:all:fe && pnpm upgrade:all:helm:be && pnpm upgrade:all:resources-monitor:be && bash scripts/fix-go-mod-transitive-pins.sh"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.6.1",
-    "eslint": "^10.10.0",
+    "@types/node": "^26.6.2",
+    "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
     "npm-check-updates": "^23.1.0",
-    "prettier": "^3.9.7",
+    "prettier": "^3.9.8",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.1"
   }
 }
