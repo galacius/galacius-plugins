@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MetricOrderList } from "../MetricOrderList";
-import type { Capabilities } from "../../../api/resources";
+import type { Capabilities } from "../../../../api/resources";
 
 // Icons are presentational and irrelevant to the reorder/toggle logic under
 // test; mocking them decouples these tests from whichever @galacius/design-system

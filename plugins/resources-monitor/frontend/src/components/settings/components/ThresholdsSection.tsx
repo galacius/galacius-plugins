@@ -1,6 +1,6 @@
 import { Button, Input, SaveIcon } from "@galacius/design-system";
 import { FC, useCallback, useState, type SubmitEvent } from "react";
-import type { Settings } from "../../api/resources";
+import type { Settings } from "../../../api/resources";
 import {
   DEFAULT_THRESHOLDS,
   METRIC_CLASS_LABELS,
@@ -8,7 +8,7 @@ import {
   METRIC_CLASS_UNITS,
   formatBytesPerSec,
   type MetricClass,
-} from "../../utils";
+} from "../../../utils";
 
 type ThresholdMap = Record<string, { warn: number; critical: number }>;
 

@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import type { DisplayFormat, ResourcesSample, Settings } from "../api/resources";
+import type { DisplayFormat, ResourcesSample, Settings } from "../../../api/resources";
 import {
   formatBytes,
   formatBytesPerSec,
@@ -7,7 +7,7 @@ import {
   getDefaultFormat,
   METRIC_CLASS_UNITS,
   MetricClass,
-} from "../utils";
+} from "../../../utils";
 
 interface MetricDetailPanelProps {
   metricClass: string;

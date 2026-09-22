@@ -1,14 +1,14 @@
 import { ConfirmationModal, Slider } from "@galacius/design-system";
 import { FC, useEffect, useRef, useState } from "react";
-import type { Settings } from "../api/resources";
-import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
-import { useGetSettings } from "../hooks/data-access/useGetSettings";
-import { useResetSettings } from "../hooks/data-mutation/useResetSettings";
-import { useSaveSettings } from "../hooks/data-mutation/useSaveSettings";
-import { getSupportedEnabledMetrics, isKnownMetricClass } from "../utils";
-import { DisplaySection } from "./settings/DisplaySection";
-import { MetricOrderList } from "./settings/MetricOrderList";
-import { ThresholdsSection } from "./settings/ThresholdsSection";
+import type { Settings } from "../../api/resources";
+import { useGetCapabilities } from "../../hooks/data-access/useGetCapabilities";
+import { useGetSettings } from "../../hooks/data-access/useGetSettings";
+import { useResetSettings } from "../../hooks/data-mutation/useResetSettings";
+import { useSaveSettings } from "../../hooks/data-mutation/useSaveSettings";
+import { getSupportedEnabledMetrics, isKnownMetricClass } from "../../utils";
+import { DisplaySection } from "./components/DisplaySection";
+import { MetricOrderList } from "./components/MetricOrderList";
+import { ThresholdsSection } from "./components/ThresholdsSection";
 
 export const ResourcesMonitorSettingsTab: FC = () => {
   const { data: settings } = useGetSettings();

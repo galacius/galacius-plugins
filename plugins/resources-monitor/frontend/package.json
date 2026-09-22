@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsc --noEmit -p tsconfig.build.json && tsup",
     "build:report": "cross-env ANALYZE=true tsup",
     "test": "vitest run",
     "test:watch": "vitest",

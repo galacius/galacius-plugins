@@ -9,8 +9,8 @@ import {
   Switch,
 } from "@galacius/design-system";
 import { FC, useCallback, useState, type SubmitEvent } from "react";
-import type { DisplayFormat, Settings } from "../../api/resources";
-import { getDefaultFormat, METRIC_CLASS_LABELS, MetricClass } from "../../utils";
+import type { DisplayFormat, Settings } from "../../../api/resources";
+import { getDefaultFormat, METRIC_CLASS_LABELS, MetricClass } from "../../../utils";
 
 type FormatMap = Record<string, DisplayFormat>;
 

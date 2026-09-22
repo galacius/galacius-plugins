@@ -11,8 +11,8 @@ import {
   TooltipTrigger,
 } from "@galacius/design-system";
 import { FC, useCallback, useState } from "react";
-import type { Capabilities } from "../../api/resources";
-import { METRIC_CLASS_LABELS } from "../../utils";
+import type { Capabilities } from "../../../api/resources";
+import { METRIC_CLASS_LABELS } from "../../../utils";
 
 // The browser renders its default/native drag image translucently no matter
 // what background color the dragged element has — that's what causes rows to

@@ -16,6 +16,5 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  "include": ["src", "tsup.config.ts"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": ["src", "tsup.config.ts"]
 }

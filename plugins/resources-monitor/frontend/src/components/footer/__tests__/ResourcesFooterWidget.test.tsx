@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { ResourcesFooterWidget } from "../ResourcesFooterWidget";
-import { getThresholdColor } from "../../utils";
-import { useGetCapabilities } from "../../hooks/data-access/useGetCapabilities";
-import { useGetLiveSample } from "../../hooks/data-access/useGetLiveSample";
-import { useGetSettings } from "../../hooks/data-access/useGetSettings";
-import type { ResourcesSample, Settings, Capabilities } from "../../api/resources";
+import { getThresholdColor } from "../../../utils";
+import { useGetCapabilities } from "../../../hooks/data-access/useGetCapabilities";
+import { useGetLiveSample } from "../../../hooks/data-access/useGetLiveSample";
+import { useGetSettings } from "../../../hooks/data-access/useGetSettings";
+import type { ResourcesSample, Settings, Capabilities } from "../../../api/resources";
 
-vi.mock("../../hooks/data-access/useGetCapabilities", () => ({
+vi.mock("../../../hooks/data-access/useGetCapabilities", () => ({
   useGetCapabilities: vi.fn(),
 }));
 
-vi.mock("../../hooks/data-access/useGetSettings", () => ({
+vi.mock("../../../hooks/data-access/useGetSettings", () => ({
   useGetSettings: vi.fn(),
 }));
 
-vi.mock("../../hooks/data-access/useGetLiveSample", () => ({
+vi.mock("../../../hooks/data-access/useGetLiveSample", () => ({
   useGetLiveSample: vi.fn(),
 }));
 

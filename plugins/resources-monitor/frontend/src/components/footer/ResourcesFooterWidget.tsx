@@ -1,9 +1,9 @@
 import { CpuIcon, HardDriveIcon, MemoryStickIcon } from "@galacius/design-system";
 import { FC, useCallback, useMemo } from "react";
-import type { Capabilities, DisplayFormat, ResourcesSample } from "../api/resources";
-import { useGetCapabilities } from "../hooks/data-access/useGetCapabilities";
-import { useGetLiveSample } from "../hooks/data-access/useGetLiveSample";
-import { useGetSettings } from "../hooks/data-access/useGetSettings";
+import type { Capabilities, DisplayFormat, ResourcesSample } from "../../api/resources";
+import { useGetCapabilities } from "../../hooks/data-access/useGetCapabilities";
+import { useGetLiveSample } from "../../hooks/data-access/useGetLiveSample";
+import { useGetSettings } from "../../hooks/data-access/useGetSettings";
 import {
   DEFAULT_THRESHOLDS,
   formatBytesPerSec,
@@ -13,8 +13,8 @@ import {
   getThresholdColor,
   METRIC_CLASS_UNITS,
   MetricClass,
-} from "../utils";
-import { MetricChip } from "./MetricChip";
+} from "../../utils";
+import { MetricChip } from "./components/MetricChip";
 
 function getRawMetricValue(metricClass: string, s: ResourcesSample): number | null {
   if (metricClass === "cpu" && s.cpu) {

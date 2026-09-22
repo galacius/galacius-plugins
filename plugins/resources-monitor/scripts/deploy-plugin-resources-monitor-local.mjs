@@ -78,7 +78,7 @@ if (logoFile) {
 const metadata = {
   id: pluginId,
   name: "Resources Monitor",
-  description: "Live CPU, memory, disk, network, battery, load, and uptime monitoring for the host machine",
+  description: "Live CPU, memory and disk I/O monitoring for the host machine",
   version: "local-dev",
   repository: "https://github.com/gknguyen/galacius/releases",
   homepage: "https://github.com/galacius/galacius-plugins/tree/master/plugins/resources-monitor",
