@@ -41,7 +41,7 @@ jobs:
     with:
       plugin_id: resources-monitor
       plugin_name: Resources Monitor
-      plugin_description: Live CPU, memory and disk I/O monitoring for the host machine
+      plugin_description: Live monitoring CPU, memory and disk I/O usage for the application
       plugin_homepage: https://github.com/galacius/galacius-plugins/tree/master/plugins/resources-monitor
       plugin_capabilities: host-metrics
       plugin_binary_name: plugin-resources-monitor

@@ -1,4 +1,12 @@
+import { cn } from "@galacius/design-system";
 import { FC, ReactNode } from "react";
+
+function getSeverityClass(disabled?: boolean, severity?: "warning" | "destructive"): string {
+  if (disabled) return "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600";
+  if (severity === "destructive") return "bg-destructive/10 text-destructive";
+  if (severity === "warning") return "bg-warning/10 text-warning";
+  return "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300";
+}
 
 interface MetricChipProps {
   icon: ReactNode;
@@ -24,21 +32,15 @@ export const MetricChip: FC<MetricChipProps> = ({
   compact,
 }) => {
   const baseClass = "flex items-center gap-1 px-2 py-1 rounded text-xs transition-opacity";
-  const severityClass = disabled
-    ? "bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600"
-    : severity === "destructive"
-      ? "bg-destructive/10 text-destructive"
-      : severity === "warning"
-        ? "bg-warning/10 text-warning"
-        : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300";
+  const severityClass = getSeverityClass(disabled, severity);
 
   if (isLoading) {
     return (
       <div
-        className={`${baseClass} ${severityClass} animate-pulse`}
+        className={cn("animate-pulse", baseClass, severityClass)}
         style={{ width: width || "auto" }}
       >
-        <span className="text-lg">{icon}</span>
+        <span className="text-xs">{icon}</span>
         {!compact && <span className="flex-1">{label}</span>}
         <span className="min-w-8 text-right font-mono text-xs">—</span>
       </div>
@@ -46,8 +48,8 @@ export const MetricChip: FC<MetricChipProps> = ({
   }
 
   return (
-    <div className={`${baseClass} ${severityClass}`} title={title || `${label}: ${value}`}>
-      <span className="text-lg">{icon}</span>
+    <div className={cn(baseClass, severityClass)} title={title || `${label}: ${value}`}>
+      <span className="text-xs">{icon}</span>
       {!compact && <span className="flex-1">{label}</span>}
       <span className="min-w-8 text-right font-mono text-xs">{value}</span>
     </div>

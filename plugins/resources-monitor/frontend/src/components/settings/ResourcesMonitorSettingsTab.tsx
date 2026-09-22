@@ -102,7 +102,7 @@ export const ResourcesMonitorSettingsTab: FC = () => {
   return (
     <div className="flex h-full flex-col">
       {/* Scrollable settings sections */}
-      <div className="max-w-xl flex-1 space-y-6 overflow-y-auto">
+      <div className="max-w-xl flex-1 space-y-6 overflow-y-auto pr-4">
         {/* Metrics section */}
         <div>
           <h3 className="mb-3 text-xs font-semibold tracking-wider uppercase">Metrics</h3>

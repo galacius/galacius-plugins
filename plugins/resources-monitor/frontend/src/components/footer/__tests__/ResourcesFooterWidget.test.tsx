@@ -26,6 +26,7 @@ vi.mock("@galacius/design-system", () => ({
   CpuIcon: () => null,
   MemoryStickIcon: () => null,
   HardDriveIcon: () => null,
+  cn: (...classes: unknown[]) => classes.filter(Boolean).join(" "),
 }));
 
 function mockCapabilities(data: Capabilities | undefined) {

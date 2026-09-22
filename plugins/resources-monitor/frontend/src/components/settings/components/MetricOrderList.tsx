@@ -13,6 +13,7 @@ import {
 import { FC, useCallback, useState } from "react";
 import type { Capabilities } from "../../../api/resources";
 import { METRIC_CLASS_LABELS } from "../../../utils";
+import { getMetricIcon } from "../../shared/icons";
 
 // The browser renders its default/native drag image translucently no matter
 // what background color the dragged element has — that's what causes rows to
@@ -119,27 +120,14 @@ export const MetricOrderList: FC<MetricOrderListProps> = ({
             onDragEnd={handleDragEnd}
             className={cn(
               "flex items-center gap-2 rounded border-2 p-2 transition-colors",
+              !isEnabled && "opacity-60",
               rowClassName
             )}
           >
-            <span
-              className="cursor-grab text-neutral-400 active:cursor-grabbing"
-              title="Drag to reorder"
-            >
-              <GripVerticalIcon className="h-4 w-4" />
+            <span className="shrink-0 text-neutral-500">
+              {getMetricIcon(metricClass, { className: "h-4 w-4" })}
             </span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => onToggle(metricClass, !isEnabled)}
-              disabled={!isSupported}
-              aria-label={isEnabled ? `Disable ${label}` : `Enable ${label}`}
-              aria-pressed={isEnabled}
-              className="shrink-0"
-              title={!isSupported ? `${label} is not available on this platform` : undefined}
-            >
-              {isEnabled ? <EyeIcon className="h-4 w-4" /> : <EyeOffIcon className="h-4 w-4" />}
-            </Button>
+
             <span className="flex-1 text-sm">{label}</span>
             {!isSupported && (
               <TooltipProvider>
@@ -157,9 +145,28 @@ export const MetricOrderList: FC<MetricOrderListProps> = ({
                 </Tooltip>
               </TooltipProvider>
             )}
+
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onToggle(metricClass, !isEnabled)}
+              aria-label={isEnabled ? `Disable ${label}` : `Enable ${label}`}
+              aria-pressed={isEnabled}
+              className="shrink-0"
+            >
+              {isEnabled ? <EyeIcon className="h-4 w-4" /> : <EyeOffIcon className="h-4 w-4" />}
+            </Button>
+
+            <span
+              className="cursor-grab text-neutral-400 active:cursor-grabbing"
+              title="Drag to reorder"
+            >
+              <GripVerticalIcon className="h-4 w-4" />
+            </span>
           </div>
         );
       })}
+
       {draggedIndex !== null && dragPosition && (
         <div
           className="pointer-events-none fixed z-50 flex items-center gap-2 rounded border-2 border-neutral-300 bg-black p-2 text-white shadow-lg dark:border-neutral-700"

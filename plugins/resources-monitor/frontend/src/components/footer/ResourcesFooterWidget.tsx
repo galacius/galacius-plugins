@@ -1,4 +1,3 @@
-import { CpuIcon, HardDriveIcon, MemoryStickIcon } from "@galacius/design-system";
 import { FC, useCallback, useMemo } from "react";
 import type { Capabilities, DisplayFormat, ResourcesSample } from "../../api/resources";
 import { useGetCapabilities } from "../../hooks/data-access/useGetCapabilities";
@@ -14,6 +13,7 @@ import {
   METRIC_CLASS_UNITS,
   MetricClass,
 } from "../../utils";
+import { getMetricIcon } from "../shared/icons";
 import { MetricChip } from "./components/MetricChip";
 
 function getRawMetricValue(metricClass: string, s: ResourcesSample): number | null {
@@ -27,21 +27,11 @@ function getRawMetricValue(metricClass: string, s: ResourcesSample): number | nu
   return null;
 }
 
-const METRIC_ICONS: Record<string, React.ReactNode> = {
-  cpu: <CpuIcon />,
-  memory: <MemoryStickIcon />,
-  diskio: <HardDriveIcon />,
-};
-
 const WORST_CASE_WIDTHS: Record<string, string> = {
   cpu: "120px",
   memory: "120px",
   diskio: "140px",
 };
-
-function getMetricIcon(metricClass: string): React.ReactNode {
-  return METRIC_ICONS[metricClass] || null;
-}
 
 function getMetricValue(
   metricClass: string,

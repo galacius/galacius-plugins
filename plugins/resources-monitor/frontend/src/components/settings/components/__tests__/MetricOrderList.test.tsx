@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MetricOrderList } from "../MetricOrderList";
@@ -12,6 +12,14 @@ vi.mock("@galacius/design-system", () => ({
   GripVerticalIcon: () => null,
   EyeIcon: () => null,
   EyeOffIcon: () => null,
+  CpuIcon: () => null,
+  MemoryStickIcon: () => null,
+  HardDriveIcon: () => null,
+  InfoIcon: () => null,
+  Tooltip: ({ children }: { children?: ReactNode }) => children,
+  TooltipProvider: ({ children }: { children?: ReactNode }) => children,
+  TooltipTrigger: (props: { render?: ReactNode }) => props.render ?? null,
+  TooltipContent: ({ children }: { children?: ReactNode }) => children,
   Button: (props: ComponentProps<"button"> & { variant?: string; size?: string }) => (
     <button {...props} />
   ),
@@ -45,7 +53,7 @@ describe("MetricOrderList", () => {
     expect(memory).toBeInTheDocument();
   });
 
-  it("disables toggle button for unsupported metrics", () => {
+  it("keeps the enable toggle usable for unsupported metrics", () => {
     const capabilities: Capabilities = {
       cpu: true,
       memory: false,
@@ -54,10 +62,8 @@ describe("MetricOrderList", () => {
 
     const { container } = render(<MetricOrderList {...defaultProps} capabilities={capabilities} />);
 
-    const memoryToggle = within(container)
-      .getAllByTitle("Memory is not available on this platform")
-      .find((el) => el.tagName === "BUTTON");
-    expect(memoryToggle).toBeDisabled();
+    const memoryToggle = within(container).getByRole("button", { name: "Disable Memory" });
+    expect(memoryToggle).toBeEnabled();
 
     const cpuToggle = within(container).getByRole("button", { name: "Disable CPU" });
     expect(cpuToggle).toBeEnabled(); // cpu, first in defaultProps.metricOrder
