@@ -45,6 +45,11 @@ on:
         default: "dev"
         # Set to "latest" to resolve to the current latest GitHub release at runtime
         # (used by CI test wiring so it never needs to be hand-bumped).
+      ref:
+        description: "Git ref/SHA to check out (defaults to the triggering event's ref when omitted)"
+        type: string
+        required: false
+        default: ""
 
 jobs:
   detect-changes:
@@ -91,6 +96,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup Go from go.mod
         uses: ./.github/actions/setup-go
@@ -204,6 +211,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Resolve release version
         id: resolve-version
