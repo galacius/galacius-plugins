@@ -1,15 +1,6 @@
 packages:
   - "plugins/helm/frontend"
   - "plugins/resources-monitor/frontend"
-# TODO(resources-monitor): remove this override once @galacius/core and
-# @galacius/design-system are tagged/published with the registerFooterWidget,
-# registerEvents (clusterWideAPI), and Activity/Battery/MemoryStick/TrendingUp
-# icon additions — until then the published "1.0.0" on npm predates those
-# APIs and this local link is needed to type-check/build/verify against the
-# real current source in the sibling galacius checkout.
-overrides:
-  "@galacius/core": "link:../galacius/packages/core/frontend"
-  "@galacius/design-system": "link:../galacius/packages/design-system"
 allowBuilds:
   "@parcel/watcher": true
   esbuild: true
@@ -26,9 +17,9 @@ catalog:
   typescript: ^6.0.3
   vitest: ^4.1.11
 minimumReleaseAgeExclude:
-  - '@galacius/core@1.0.0 || 1.7.3 || 1.7.4 || 1.7.5 || 1.7.10 || 1.7.11 || 1.7.12 || 1.8.0'
+  - '@galacius/core@1.0.0 || 1.1.0 || 1.7.3 || 1.7.4 || 1.7.5 || 1.7.10 || 1.7.11 || 1.7.12 || 1.8.0'
   - eslint@10.9.0 || 10.9.1
-  - '@galacius/design-system@1.0.0 || 1.7.3 || 1.7.4 || 1.7.5 || 1.7.8 || 1.7.11 || 1.7.12 || 1.9.0'
+  - '@galacius/design-system@1.0.0 || 1.1.0 || 1.7.3 || 1.7.4 || 1.7.5 || 1.7.8 || 1.7.11 || 1.7.12 || 1.9.0'
   - '@tanstack/query-core@5.102.3 || 5.102.7 || 5.102.8 || 5.103.1 || 5.103.2'
   - '@tanstack/react-query@5.102.3 || 5.102.7 || 5.102.8 || 5.103.1 || 5.103.2'
   - '@types/node@26.3.0 || 26.4.0 || 26.6.1'

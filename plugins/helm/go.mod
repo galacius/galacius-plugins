@@ -3,7 +3,7 @@ module github.com/galacius/galacius-plugins/plugins/helm
 go 1.27.0
 
 require (
-	github.com/galacius/galacius/packages/core v1.0.0
+	github.com/galacius/galacius/packages/core v1.1.0
 	github.com/go-chi/chi/v5 v5.3.2
 	helm.sh/helm/v3 v3.22.0
 	k8s.io/api v0.37.0

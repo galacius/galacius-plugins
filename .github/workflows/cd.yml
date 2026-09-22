@@ -31,6 +31,7 @@ jobs:
       plugin_capabilities: helm-charts,helm-releases
       plugin_binary_name: plugin-helm
       version: ${{ needs.release-version.outputs.tag_name }}
+      minimumHostVersion: "1.1.0"
 
   build-resources-monitor:
     name: Build Resources Monitor Plugin
@@ -46,6 +47,7 @@ jobs:
       plugin_capabilities: host-metrics
       plugin_binary_name: plugin-resources-monitor
       version: ${{ needs.release-version.outputs.tag_name }}
+      minimumHostVersion: "1.1.0"
 
   publish-plugin-registry:
     name: Publish Plugin Registry Manifest

@@ -14,8 +14,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@galacius/core": "1.0.0",
-    "@galacius/design-system": "1.0.0",
+    "@galacius/core": "1.1.0",
+    "@galacius/design-system": "1.1.0",
     "@tanstack/react-query": "^5.103.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

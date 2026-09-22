@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ebitengine/purego v0.11.1 h1:2zpWRSQNVKN4eKsKO9eM1ILDgWfYMY9GwqRmK6XeQ/0=
 github.com/ebitengine/purego v0.11.1/go.mod h1:DCHPP08djqhNSoTfImcnHYQRZmd0qhakvrozqaEYhGQ=
-github.com/galacius/galacius/packages/core v1.0.0 h1:1Qdhl/t5CqQrR+MXAu/LlcIadpfieS2uO79UR6G8MEE=
-github.com/galacius/galacius/packages/core v1.0.0/go.mod h1:CO9NoUFXJaAvREKiP950o9eTc6jzonEDIE7R3/SsnBU=
+github.com/galacius/galacius/packages/core v1.1.0 h1:JjPNjAQcQVqSbbs3lls34Ye+JkvLRjh0hgOvytiBcWU=
+github.com/galacius/galacius/packages/core v1.1.0/go.mod h1:OSDooKW5oiUjVTZAvBUKhnxAV37eZA6BH3zUnkqwwYg=
 github.com/go-chi/chi/v5 v5.3.2 h1:5YQkICvTCSZ25hoRsyJazN0scjzKGiu4VAUc7H1o1nY=
 github.com/go-chi/chi/v5 v5.3.2/go.mod h1:R+tYY2hNuVUUjxoPtqUdgBqevM9s9njzkTLutVsOCto=
 github.com/go-ole/go-ole v1.2.6/go.mod h1:pprOEPIfldk/42T2oK7lQ4v4JSDwmV0As9GaiUsvbm0=
