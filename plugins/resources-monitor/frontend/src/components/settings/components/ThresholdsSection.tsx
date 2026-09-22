@@ -139,10 +139,14 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-neutral-600 dark:text-neutral-400">
+                  <label
+                    htmlFor={`threshold-warn-${metricClass}`}
+                    className="text-xs text-neutral-600 dark:text-neutral-400"
+                  >
                     Warning {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
                   <Input
+                    id={`threshold-warn-${metricClass}`}
                     type="number"
                     min="0"
                     max={scaleMax}
@@ -154,10 +158,14 @@ export const ThresholdsSection: FC<ThresholdsSectionProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-neutral-600 dark:text-neutral-400">
+                  <label
+                    htmlFor={`threshold-critical-${metricClass}`}
+                    className="text-xs text-neutral-600 dark:text-neutral-400"
+                  >
                     Critical {unit === "bytesPerSec" ? "(bytes/sec)" : "%"}
                   </label>
                   <Input
+                    id={`threshold-critical-${metricClass}`}
                     type="number"
                     min="0"
                     max={scaleMax}

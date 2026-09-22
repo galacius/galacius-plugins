@@ -127,7 +127,10 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
                   <div className="grid grid-cols-2 gap-2">
                     {/* Units */}
                     <div>
-                      <label className="text-xs text-neutral-600 dark:text-neutral-400">
+                      <label
+                        htmlFor={`format-units-${metricClass}`}
+                        className="text-xs text-neutral-600 dark:text-neutral-400"
+                      >
                         Units
                       </label>
                       <Select
@@ -136,7 +139,11 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
                           handleFormatChange(metricClass, "units", val ?? "auto")
                         }
                       >
-                        <SelectTrigger size="sm" className="mt-1 w-full">
+                        <SelectTrigger
+                          id={`format-units-${metricClass}`}
+                          size="sm"
+                          className="mt-1 w-full"
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -149,7 +156,10 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
 
                     {/* Precision */}
                     <div>
-                      <label className="text-xs text-neutral-600 dark:text-neutral-400">
+                      <label
+                        htmlFor={`format-precision-${metricClass}`}
+                        className="text-xs text-neutral-600 dark:text-neutral-400"
+                      >
                         Precision
                       </label>
                       <Select
@@ -158,7 +168,11 @@ export const DisplaySection: FC<DisplaySectionProps> = ({
                           handleFormatChange(metricClass, "precision", parseInt(val ?? "1"))
                         }
                       >
-                        <SelectTrigger size="sm" className="mt-1 w-full">
+                        <SelectTrigger
+                          id={`format-precision-${metricClass}`}
+                          size="sm"
+                          className="mt-1 w-full"
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
