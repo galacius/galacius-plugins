@@ -10,9 +10,14 @@ export default defineConfig([
     "**/dist/**",
     "plugins/helm/frontend/src/generated-style.css",
     "plugins/helm/.output/**",
+    "plugins/resources-monitor/frontend/src/generated-style.css",
+    "plugins/resources-monitor/.output/**",
   ]),
   {
-    files: ["plugins/helm/frontend/src/**/*.{ts,tsx}"],
+    files: [
+      "plugins/helm/frontend/src/**/*.{ts,tsx}",
+      "plugins/resources-monitor/frontend/src/**/*.{ts,tsx}",
+    ],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -31,6 +36,8 @@ export default defineConfig([
     files: [
       "plugins/helm/frontend/src/**/__tests__/**/*.{ts,tsx}",
       "plugins/helm/frontend/src/**/*.test.{ts,tsx}",
+      "plugins/resources-monitor/frontend/src/**/__tests__/**/*.{ts,tsx}",
+      "plugins/resources-monitor/frontend/src/**/*.test.{ts,tsx}",
     ],
     rules: {
       "react-hooks/rules-of-hooks": "off",

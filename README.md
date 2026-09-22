@@ -4,9 +4,10 @@ Official plugin repository for Galacius.
 
 ## Plugins
 
-| Plugin | Description                                                      | Docs                                             |
-| ------ | ---------------------------------------------------------------- | ------------------------------------------------ |
-| Helm   | Integration with Helm package manager for Kubernetes deployments | [plugins/helm/README.md](plugins/helm/README.md) |
+| Plugin            | Description                                                          | Docs                                                                       |
+| ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Helm              | Integration with Helm package manager for Kubernetes deployments     | [plugins/helm/README.md](plugins/helm/README.md)                           |
+| Resources Monitor | Live CPU/memory/disk-IO footer widget for the host app + its plugins | [plugins/resources-monitor/README.md](plugins/resources-monitor/README.md) |
 
 ## Architecture: how a plugin talks to the host
 

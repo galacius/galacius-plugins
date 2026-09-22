@@ -1,12 +1,18 @@
 ---
 name: architecture-call-path
-description: "Plugin/host call-path — business calls go frontend-to-backend over HTTP directly; gRPC is a generic pub/sub control channel the plugin dials outbound, auth'd via a stdin-delivered bearer token"
+description: "Plugin/host call-path (helm plugin) — business calls go frontend-to-backend over HTTP directly; gRPC is a generic pub/sub control channel the plugin dials outbound, auth'd via a stdin-delivered bearer token"
 metadata: 
   node_type: memory
   type: project
   originSessionId: 7d5e9c83-be5e-4cf5-9fd6-36ce1356d5fc
-  modified: 2026-08-29T07:17:20.033Z
+  modified: 2026-09-22T00:00:00.000Z
 ---
+
+This describes the **helm** plugin's call path in full. `resources-monitor` shares the same HTTP
+business-call and stdin-auth-token mechanics but uses only a fraction of the gRPC surface — it dials
+out to `Emit` live samples, but never `Subscribe`s (no cluster-context/namespace concept), so the
+"Clear-first + synchronous-acked push" and "two independent watch loops" sections below don't apply
+to it. See [[file-structure]]'s `plugins/resources-monitor/` section for its actual shape.
 
 The business/data-plane call path is **plugin frontend → plugin backend directly over localhost HTTP**
 (`listCharts`, `installChart`, etc.), bypassing the host app for every business call. The host still

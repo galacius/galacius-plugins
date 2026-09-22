@@ -5,6 +5,7 @@ node_modules/
 plugins/helm/frontend/dist/
 plugins/helm/frontend/pkg/
 plugins/helm/plugin
+plugins/resources-monitor/frontend/dist/
 .output/
 
 coverage/

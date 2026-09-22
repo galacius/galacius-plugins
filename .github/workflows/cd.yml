@@ -31,10 +31,27 @@ jobs:
       plugin_capabilities: helm-charts,helm-releases
       plugin_binary_name: plugin-helm
       version: ${{ needs.release-version.outputs.tag_name }}
+      minimumHostVersion: "1.1.0"
+
+  build-resources-monitor:
+    name: Build Resources Monitor Plugin
+    needs: [release-version]
+    if: ${{ needs.release-version.result == 'success' }}
+    uses: ./.github/workflows/job-build.yml
+    secrets: inherit
+    with:
+      plugin_id: resources-monitor
+      plugin_name: Resources Monitor
+      plugin_description: Live monitoring CPU, memory and disk I/O usage for the application
+      plugin_homepage: https://github.com/galacius/galacius-plugins/tree/master/plugins/resources-monitor
+      plugin_capabilities: host-metrics
+      plugin_binary_name: plugin-resources-monitor
+      version: ${{ needs.release-version.outputs.tag_name }}
+      minimumHostVersion: "1.1.0"
 
   publish-plugin-registry:
     name: Publish Plugin Registry Manifest
-    needs: [release-version, build-helm]
+    needs: [release-version, build-helm, build-resources-monitor]
     if: ${{ always() && needs.release-version.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
@@ -179,7 +196,7 @@ jobs:
 
   finalize-release:
     name: Finalize Release
-    needs: [release-version, build-helm, publish-plugin-registry]
+    needs: [release-version, build-helm, build-resources-monitor, publish-plugin-registry]
     if: ${{ always() && needs.release-version.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:

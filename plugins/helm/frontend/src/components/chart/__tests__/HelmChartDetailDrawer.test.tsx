@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createElement } from "react";
+import { Children, cloneElement, createElement, isValidElement, useState } from "react";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
@@ -30,6 +30,50 @@ vi.mock("@galacius/core", () => ({
     useExposeProperties: vi.fn(),
     useExposeMethods: vi.fn(),
   },
+}));
+
+// The linked @galacius/design-system pulls its own React instance under jsdom
+// (see vitest.config.ts NOTE in plugins/resources-monitor/frontend) — mocking
+// per test file avoids the resulting dual-React-instance crash. Button is
+// mocked as a faithful <button> passthrough because the test asserts on its
+// role/disabled attribute (it's rendered both directly and via the nested
+// HelmChartVersionSelectDropdown/HelmChartIcon, which are also transitively
+// rendered and need their own design-system exports covered here); the rest
+// are purely decorative/unexercised by this test's assertions.
+vi.mock("@galacius/design-system", () => ({
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  AnnotationBadge: ({ label }: any) => <span>{label}</span>,
+  Markdown: ({ children, className }: any) => <div className={className}>{children}</div>,
+  PackageIcon: () => null,
+  ResourceDetailDrawer: ({ open, children }: any) => (open ? <>{children}</> : null),
+  ScrollArea: ({ children, className }: any) => <div className={className}>{children}</div>,
+  cn: (...args: any[]) => args.filter(Boolean).join(" "),
+  CheckIcon: () => null,
+  ChevronDownIcon: () => null,
+  Loader2Icon: () => null,
+  DropdownMenu: ({ children }: any) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        {Children.map(children, (child) =>
+          isValidElement(child)
+            ? cloneElement(child as any, { __open: open, __setOpen: setOpen })
+            : child
+        )}
+      </>
+    );
+  },
+  DropdownMenuTrigger: ({ children, className, disabled, __open, __setOpen }: any) => (
+    <button className={className} disabled={disabled} onClick={() => __setOpen(!__open)}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children, __open }: any) => (__open ? <div>{children}</div> : null),
+  DropdownMenuItem: ({ children, onClick, className }: any) => (
+    <div role="menuitem" className={className} onClick={onClick}>
+      {children}
+    </div>
+  ),
 }));
 
 // ─── imports after mocks ──────────────────────────────────────────────────────

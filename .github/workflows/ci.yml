@@ -24,3 +24,19 @@ jobs:
       plugin_id: helm
       RUNNER: ubuntu-latest
     secrets: inherit
+
+  unit-test-plugin-resources-monitor:
+    name: Unit Tests - Resources Monitor Plugin
+    uses: ./.github/workflows/job-unit-test.yml
+    with:
+      plugin_id: resources-monitor
+      plugin_name: Resources Monitor
+    secrets: inherit
+
+  build-check-plugin-resources-monitor:
+    name: Build Check - Resources Monitor Plugin
+    uses: ./.github/workflows/job-build-check.yml
+    with:
+      plugin_id: resources-monitor
+      RUNNER: ubuntu-latest
+    secrets: inherit
