@@ -1,15 +1,23 @@
 name: CD
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - master
 
 jobs:
   release-version:
     name: Release Version
+    if: ${{ github.event.pull_request.merged == true }}
     uses: ./.github/workflows/job-release-semver.yml
     secrets: inherit
+    with:
+      # github.sha under pull_request events is GitHub's synthetic PR-merge-preview
+      # SHA, not the commit that actually lands on master — use the real merge
+      # commit instead so the tag/release/build/publish chain targets it.
+      ref: ${{ github.event.pull_request.merge_commit_sha }}
 
   # Adding a new plugin: add its own `build-<id>` job below (mirroring build-helm)
   # and list it in publish-plugin-registry's `needs:` — job-build.yml handles change
@@ -32,6 +40,7 @@ jobs:
       plugin_binary_name: plugin-helm
       version: ${{ needs.release-version.outputs.tag_name }}
       minimumHostVersion: "1.1.0"
+      ref: ${{ github.event.pull_request.merge_commit_sha }}
 
   build-resources-monitor:
     name: Build Resources Monitor Plugin
@@ -48,6 +57,7 @@ jobs:
       plugin_binary_name: plugin-resources-monitor
       version: ${{ needs.release-version.outputs.tag_name }}
       minimumHostVersion: "1.1.0"
+      ref: ${{ github.event.pull_request.merge_commit_sha }}
 
   publish-plugin-registry:
     name: Publish Plugin Registry Manifest
